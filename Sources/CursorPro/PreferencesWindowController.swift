@@ -500,9 +500,14 @@ private struct LicensePane: View {
     @ObservedObject private var license = LicenseManager.shared
     @State private var codeField = ""
     @State private var justActivated = false
+    @State private var justCopiedMachineID = false
 
-    private static let whatsAppURL = URL(string: "https://wa.me/34643109970?text=" +
-        "Salut! Vreau să cumpăr o licență CursorPro.".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)!
+    private static let machineID = MachineID.display
+
+    private static var whatsAppURL: URL {
+        let text = "Salut! Vreau să cumpăr o licență CursorPro GDC. ID calculator: \(machineID)"
+        return URL(string: "https://wa.me/34643109970?text=" + text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)!
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -511,12 +516,38 @@ private struct LicensePane: View {
             statusCard
 
             if !license.isLicensed {
+                machineIDCard
                 activationCard
                 buyCard
             } else {
                 Button(L.t("license.deactivate"), role: .destructive) { license.deactivate() }
             }
         }
+    }
+
+    private var machineIDCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(L.t("license.machineID.title")).font(.headline)
+            Text(L.t("license.machineID.body"))
+                .font(.callout).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 10) {
+                Text(Self.machineID)
+                    .font(.system(.body, design: .monospaced))
+                    .padding(.horizontal, 10).padding(.vertical, 6)
+                    .background(RoundedRectangle(cornerRadius: 6).fill(Color(nsColor: .textBackgroundColor)))
+                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color(nsColor: .separatorColor), lineWidth: 1))
+                Button(justCopiedMachineID ? L.t("license.machineID.copied") : L.t("license.machineID.copy")) {
+                    let pb = NSPasteboard.general
+                    pb.clearContents()
+                    pb.setString(Self.machineID, forType: .string)
+                    justCopiedMachineID = true
+                }
+            }
+        }
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor)))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(nsColor: .separatorColor), lineWidth: 1))
     }
 
     private var statusCard: some View {

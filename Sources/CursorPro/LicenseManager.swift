@@ -11,8 +11,8 @@ final class LicenseManager: ObservableObject {
     static let trialDurationDays = 3
 
     @Published private(set) var isLicensed = false
-    @Published private(set) var licenseCustomer = ""
     @Published private(set) var licenseExpiresAt: Int64 = 0 // 0 = perpetual
+    @Published private(set) var licenseMachineLocked = false
     @Published var activationError: String?
 
     private let defaults = UserDefaults.standard
@@ -66,8 +66,8 @@ final class LicenseManager: ObservableObject {
 
     func deactivate() {
         isLicensed = false
-        licenseCustomer = ""
         licenseExpiresAt = 0
+        licenseMachineLocked = false
         if let url = activationFileURL {
             try? FileManager.default.removeItem(at: url)
         }
@@ -83,8 +83,8 @@ final class LicenseManager: ObservableObject {
 
     private func applyLicense(payload: LicenseCore.Payload) {
         isLicensed = true
-        licenseCustomer = payload.customer
         licenseExpiresAt = payload.expiresAt
+        licenseMachineLocked = payload.machineLocked
     }
 
     private func saveLicense(code: String) {
@@ -98,6 +98,7 @@ final class LicenseManager: ObservableObject {
         case .malformedCode: return L.t("license.error.malformed")
         case .badSignature: return L.t("license.error.badSignature")
         case .wrongProduct: return L.t("license.error.wrongProduct")
+        case .wrongMachine: return L.t("license.error.wrongMachine")
         case .expired: return L.t("license.error.expired")
         }
     }
