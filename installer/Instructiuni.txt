@@ -1,0 +1,55 @@
+CursorPro GDC — Instrucțiuni de instalare și utilizare
+
+
+1. INSTALARE
+
+1. Descarcă fișierul CursorProGDC.pkg de pe pagina de descărcare sau din secțiunea Releases de pe GitHub.
+2. Fișierul nu este semnat cu un certificat plătit Apple, așa că la prima deschidere macOS va afișa un avertisment. Click-dreapta pe fișier → Deschide → confirmă în fereastra care apare. (E nevoie o singură dată; la deschiderile următoare nu mai apare avertismentul.)
+3. Urmează pașii instalatorului. Va trebui să accepți Termenii și Condițiile pentru a continua.
+4. Aplicația se instalează automat în folderul Applications.
+
+
+2. PRIMA PORNIRE ȘI PERMISIUNILE
+
+La prima deschidere, CursorPro GDC are nevoie de două permisiuni din System Settings → Privacy & Security:
+
+• Accessibility (Accesibilitate) — necesară ca aplicația să urmărească mouse-ul și tastele apăsate global, indiferent ce aplicație e activă pe ecran.
+• Screen Recording (Înregistrare ecran) — necesară doar pentru funcția Zoom, ca să poată mări zona din jurul cursorului.
+
+Important: după ce acorzi o permisiune din System Settings, închide complet aplicația (click-dreapta pe iconița din bara de sus → Închide CursorPro GDC) și redeschide-o din Applications — macOS nu aplică o permisiune nou-acordată unei aplicații deja pornite.
+
+CursorPro GDC nu înregistrează, stochează sau trimite nimic din ce vezi pe ecran. Tot ce ține de Zoom se procesează local și dispare imediat ce eliberezi tasta.
+
+
+3. FOLOSIRE RAPIDĂ
+
+Toate modurile se activează ținând apăsată o tastă (implicit, reconfigurabil din Preferințe):
+
+• Halo cursor — comutator permanent din meniu, nu tastă ținută.
+• Spotlight — implicit Control.
+• Desen — implicit Option. Patru unelte (Liber, Săgeată, Cerc, Cadru), fiecare cu propria tastă rapidă din Preferințe → Taste rapide.
+• Zoom — implicit Shift. Mișcă mouse-ul liber până ajungi exact unde vrei să arăți ceva, apoi ține tasta — abia atunci apare lupa, fixă pe acel punct.
+
+Nivelul de mărire al Zoom-ului se alege din Preferințe → Zoom (2x–6x).
+
+
+4. TRIAL ȘI ACTIVARE
+
+Aplicația funcționează complet, fără restricții, timp de 3 zile de la prima pornire. După aceea, funcțiile principale (Halo, Spotlight, Desen, Zoom) se opresc automat până activezi o licență.
+
+Pentru a activa:
+1. Deschide Preferințe → Licență.
+2. Dacă nu ai încă un cod, apasă butonul "Scrie-mi pe WhatsApp ca să cumperi".
+3. După ce primești codul, lipește-l în câmpul dedicat și apasă Activează.
+
+Codul e legat de tine, nu de un singur calculator — îl poți folosi pe orice Mac al tău.
+
+
+5. ACTUALIZĂRI
+
+Din meniul CursorPro GDC (bara de sus) → "Caută actualizări…" — verifică dacă există o versiune mai nouă și te duce direct la pagina de descărcare dacă da.
+
+
+6. SUPORT
+
+Pentru orice întrebare sau problemă, scrie-mi pe WhatsApp (buton disponibil în Preferințe → Licență) sau deschide un Issue pe pagina de GitHub a proiectului.
