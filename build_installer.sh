@@ -67,4 +67,13 @@ productbuild \
     "$FINAL_PKG"
 
 rm -rf "$PAYLOAD_ROOT" "$COMPONENT_PKG"
+
+# A version-agnostic copy too — the landing page always links to this
+# stable filename (releases/latest/download/CursorProGDC.pkg), so it
+# doesn't need editing every release. Upload BOTH files to each GitHub
+# release: the versioned one (so old links keep working) and this one
+# (so the landing page's link always resolves to whatever is newest).
+cp "$FINAL_PKG" "$DIST_DIR/CursorProGDC.pkg"
+
 echo "==> Done: $FINAL_PKG"
+echo "==> Also: $DIST_DIR/CursorProGDC.pkg (upload both to the GitHub release)"
