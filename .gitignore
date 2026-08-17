@@ -1,0 +1,7 @@
+.build/
+.swiftpm/
+*.xcuserstate
+.DS_Store
+CursorPro.app/
+dist/
+*.pkg
