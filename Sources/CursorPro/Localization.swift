@@ -187,8 +187,16 @@ enum L {
         "license.error.malformed": [.ro: "Codul nu e valid — verifică să-l fi copiat complet.", .en: "That code isn't valid — check you copied all of it.", .es: "Ese código no es válido — comprueba que lo copiaste completo."],
         "license.error.badSignature": [.ro: "Codul nu e valid.", .en: "That code isn't valid.", .es: "Ese código no es válido."],
         "license.error.wrongProduct": [.ro: "Acest cod e pentru altă aplicație.", .en: "This code is for a different app.", .es: "Este código es para otra aplicación."],
+        "license.error.wrongMachine": [.ro: "Acest cod e activat pentru alt calculator.", .en: "This code is activated for a different Mac.", .es: "Este código está activado para otro Mac."],
         "license.error.expired": [.ro: "Acest cod a expirat.", .en: "This code has expired.", .es: "Este código ha caducado."],
         "license.activated.success": [.ro: "Activat cu succes!", .en: "Activated successfully!", .es: "¡Activado correctamente!"],
+
+        "license.machineID.title": [.ro: "ID-ul calculatorului tău", .en: "Your Mac's ID", .es: "El ID de tu Mac"],
+        "license.machineID.body": [.ro: "Trimite-mi acest cod când cumperi o licență — o leagă de calculatorul acesta, ca să nu poată fi folosită de altcineva.",
+                                    .en: "Send me this code when you buy a license — it ties it to this Mac, so it can't be used by anyone else.",
+                                    .es: "Envíame este código cuando compres una licencia — la vincula a este Mac, para que nadie más pueda usarla."],
+        "license.machineID.copy": [.ro: "Copiază", .en: "Copy", .es: "Copiar"],
+        "license.machineID.copied": [.ro: "Copiat!", .en: "Copied!", .es: "¡Copiado!"],
 
         // MARK: - Updates
 
