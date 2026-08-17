@@ -1,0 +1,55 @@
+TERMENI ȘI CONDIȚII — CursorPro GDC
+Ultima actualizare: 17 august 2026
+
+1. LICENȚA
+CursorPro GDC ("Aplicația") este dezvoltată de Cristi Gordas ("GDC",
+"Dezvoltatorul"). Prin instalarea și utilizarea Aplicației, accepți acești
+termeni.
+
+Îți este acordată o licență personală, netransmisibilă, de a instala și
+folosi Aplicația pe calculatoarele tale, pentru uz propriu sau profesional
+(inclusiv predare la cursuri).
+
+2. PERIOADA DE PROBĂ
+Aplicația oferă o perioadă de probă gratuită de 3 zile de la prima
+pornire, cu toate funcțiile active. După expirarea perioadei de probă,
+funcțiile principale (Halo, Spotlight, Desen, Zoom) se opresc automat
+până la activarea unei licențe plătite.
+
+3. ACHIZIȚIONAREA UNEI LICENȚE
+O licență se poate achiziționa contactând Dezvoltatorul (detalii în
+aplicație, pagina Licență din Preferințe). Codul de licență primit este
+personal — nu-l distribui public.
+
+4. FĂRĂ GARANȚIE
+Aplicația este oferită "ca atare", fără nicio garanție explicită sau
+implicită. Dezvoltatorul nu este responsabil pentru pierderi directe sau
+indirecte rezultate din utilizarea sau imposibilitatea utilizării
+Aplicației.
+
+5. PERMISIUNI DE SISTEM
+Aplicația solicită permisiunile macOS de Accesibilitate (pentru
+urmărirea globală a mouse-ului și tastelor) și Înregistrare Ecran (doar
+pentru funcția Zoom, ca să poată mări zona din jurul cursorului).
+Aplicația NU înregistrează, stochează sau transmite nimic din ce
+vezi pe ecran — capturile pentru Zoom sunt procesate local, afișate
+instant și niciodată salvate.
+
+6. FĂRĂ COLECTARE DE DATE
+Aplicația nu colectează date personale, nu trimite telemetrie și nu are
+conexiune la niciun server, cu o singură excepție: la apăsarea manuală a
+butonului "Caută actualizări", aplicația verifică o singură dată numărul
+ultimei versiuni disponibile pe GitHub (fără a trimite nicio informație
+despre tine sau calculatorul tău).
+
+7. RAMBURSĂRI
+Dacă ai o problemă cu achiziția, contactează Dezvoltatorul direct — vezi
+pagina Licență din aplicație pentru detalii de contact.
+
+8. MODIFICĂRI
+Acești termeni pot fi actualizați odată cu versiuni viitoare ale
+Aplicației. Continuarea folosirii Aplicației după o actualizare
+înseamnă acceptarea noilor termeni.
+
+Prin bifarea căsuței de acceptare din acest instalator, confirmi că ai
+citit și ești de acord cu acești termeni.
