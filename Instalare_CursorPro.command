@@ -12,7 +12,16 @@
 # full explanation.
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PKG_PATH="$(find "${DIR}" -maxdepth 1 -iname "*.pkg" -print -quit)"
+# In the distributed archive the .pkg lives in a subfolder "Aplicatie/" —
+# this .command is the only file visible at the top level, so there's no
+# confusion about what to double-click. Fallback to the same folder for
+# local testing straight out of dist/ (build_installer.sh doesn't nest).
+if [ -d "${DIR}/Aplicatie" ]; then
+    SEARCH_DIR="${DIR}/Aplicatie"
+else
+    SEARCH_DIR="${DIR}"
+fi
+PKG_PATH="$(find "${SEARCH_DIR}" -maxdepth 1 -iname "*.pkg" -print -quit)"
 
 if [ -n "${PKG_PATH}" ] && [ -f "${PKG_PATH}" ]; then
     echo "==> Preparing $(basename "${PKG_PATH}") for first run..."
@@ -21,6 +30,6 @@ if [ -n "${PKG_PATH}" ] && [ -f "${PKG_PATH}" ]; then
     sleep 1
     osascript -e 'tell application "Terminal" to close front window' 2>/dev/null &
 else
-    echo "Error: no .pkg installer found in this folder (${DIR})."
+    echo "Error: no .pkg installer found (looked in Aplicatie/ and ${DIR})."
     read -p "Press Enter to close..."
 fi
