@@ -286,7 +286,7 @@
         <div class="price-tag">9 € <sub>/ o singură dată</sub></div>
         <div class="price-note">Fără abonament. Actualizări gratuite. Funcționează pe orice Mac Apple Silicon.</div>
       </div>
-      <a class="btn btn-primary" href="https://wa.me/34643109970?text=Salut!%20Vreau%20s%C4%83%20cump%C4%83r%20o%20licen%C8%9B%C4%83%20CursorPro%20GDC.">💬 Scrie-mi pe WhatsApp</a>
+      <a class="btn btn-primary" id="whatsapp-buy-btn" href="#">💬 Scrie-mi pe WhatsApp</a>
     </div>
   </div>
 </section>
@@ -308,6 +308,15 @@
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
   }, { threshold: .15 });
   revealEls.forEach(el => io.observe(el));
+
+  // Numarul de WhatsApp nu e scris in clar in HTML — reconstruit din
+  // bucati la incarcarea paginii, ca sa nu fie usor de extras de
+  // crawlere automate care aduna numere pentru spam.
+  const waParts = ['34', '643', '109', '970'];
+  const waNumber = waParts.join('');
+  const waText = encodeURIComponent('Salut! Vreau să cumpăr o licență CursorPro GDC.');
+  const waBtn = document.getElementById('whatsapp-buy-btn');
+  if (waBtn) waBtn.href = `https://wa.me/${waNumber}?text=${waText}`;
 </script>
 
 </body>

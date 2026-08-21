@@ -506,7 +506,7 @@ private struct LicensePane: View {
 
     private static var whatsAppURL: URL {
         let text = "Salut! Vreau să cumpăr o licență CursorPro GDC. ID calculator: \(machineID)"
-        return URL(string: "https://wa.me/34643109970?text=" + text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)!
+        return WhatsAppLink.url(text: text)
     }
 
     var body: some View {
