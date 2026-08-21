@@ -75,5 +75,9 @@ rm -rf "$PAYLOAD_ROOT" "$COMPONENT_PKG"
 # (so the landing page's link always resolves to whatever is newest).
 cp "$FINAL_PKG" "$DIST_DIR/CursorProGDC.pkg"
 
+echo "==> Copying first-run launcher (removes Gatekeeper quarantine automatically)…"
+cp "Instalare_CursorPro.command" "$DIST_DIR/Instalare_CursorPro.command"
+chmod +x "$DIST_DIR/Instalare_CursorPro.command"
+
 echo "==> Done: $FINAL_PKG"
-echo "==> Also: $DIST_DIR/CursorProGDC.pkg (upload both to the GitHub release)"
+echo "==> Also: $DIST_DIR/CursorProGDC.pkg and $DIST_DIR/Instalare_CursorPro.command (upload all three to the GitHub release)"
