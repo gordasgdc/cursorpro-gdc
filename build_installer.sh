@@ -84,14 +84,16 @@ chmod +x "$DIST_DIR/Instalare_CursorPro.command"
 # link means the user never sees Instalare_CursorPro.command, defeating
 # the whole point of the launcher.
 echo "==> Building CursorProGDC-Mac.zip (pkg + launcher + instructions)…"
+# Only the .command is visible at the archive root — pkg + PDF go in a
+# subfolder, so there's no confusion about what to double-click first.
 ZIP_STAGE="$DIST_DIR/zip_stage"
 rm -rf "$ZIP_STAGE"
-mkdir -p "$ZIP_STAGE"
-cp "$DIST_DIR/CursorProGDC.pkg" "$ZIP_STAGE/"
+mkdir -p "$ZIP_STAGE/Aplicatie"
+cp "$DIST_DIR/CursorProGDC.pkg" "$ZIP_STAGE/Aplicatie/"
+cp "installer/Instructiuni-CursorProGDC.pdf" "$ZIP_STAGE/Aplicatie/" 2>/dev/null || true
 cp "$DIST_DIR/Instalare_CursorPro.command" "$ZIP_STAGE/"
 chmod +x "$ZIP_STAGE/Instalare_CursorPro.command"
-cp "installer/Instructiuni-CursorProGDC.pdf" "$ZIP_STAGE/" 2>/dev/null || true
-( cd "$ZIP_STAGE" && zip -q -r "../CursorProGDC-Mac.zip" . )
+( cd "$ZIP_STAGE" && zip -q -r -y "../CursorProGDC-Mac.zip" . )
 rm -rf "$ZIP_STAGE"
 
 echo "==> Done: $FINAL_PKG"
