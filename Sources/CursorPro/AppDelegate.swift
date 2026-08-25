@@ -46,8 +46,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private func buildStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        // Explicit, desi implicit ar trebui sa fie deja true - hardening
+        // defensiv (2026-08-25) pentru bug raportat de testeri: iconita
+        // dispare instant dupa lansare, dar procesul ramane viu (vizibil
+        // in Activity Monitor). Nereprodus pe aceasta masina dupa 15+
+        // secunde de asteptare + verificare directa prin Accessibility
+        // API (nu doar "pare sa mearga") - probabil specific unei
+        // configuratii de sistem (ex. "Automatically hide and show the
+        // menu bar" din Control Center, sau Stage Manager) de pe Mac-ul
+        // testerului, nu un bug de cod reprodus aici. Acest log ramane
+        // activ ca sa putem diagnostica exact daca reapare.
+        statusItem.isVisible = true
         if let button = statusItem.button {
             button.image = NSImage(systemSymbolName: "cursorarrow.motionlines", accessibilityDescription: "CursorPro")
+            DebugLog.log("buildStatusItem: creat OK, image=\(button.image != nil), isVisible=\(statusItem.isVisible)")
+        } else {
+            DebugLog.log("buildStatusItem: statusItem.button e nil - simptom posibil pentru bug-ul iconitei disparute")
         }
         rebuildMenu()
     }
