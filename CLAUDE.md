@@ -15,17 +15,29 @@ pentru context complet despre relocarea structurii de proiecte GDC.
 ## REGULĂ PERMANENTĂ: Uninstaller obligatoriu în orice pachet (2026-08-25)
 Fiecare build/release TREBUIE să includă, alături de pachetul semnat și
 notarizat:
-1. Instalatorul (`.pkg` semnat + notarizat, plus `Instalare_CursorPro.command`
-   ca launcher de prima rulare — vezi `build_installer.sh`).
+1. Instalatorul (`.pkg` semnat cu `Developer ID Installer` + notarizat +
+   stapled — vezi `build_installer.sh`).
 2. **Uninstaller-ul complet** (`Dezinstalare_CursorPro.command`) — oprește
    procesele, resetează permisiunile TCC (`tccutil reset`), șterge
    aplicația + toate fișierele din `~/Library/` (Application Support,
    Caches, Preferences, Saved Application State, Logs). Cablat automat în
    `build_installer.sh` — copiat în `dist/` și inclus în
-   `CursorProGDC-Mac.zip`, vizibil la rădăcina arhivei alături de
-   `Instalare_CursorPro.command`. NU genera un script nou de fiecare dată —
-   editează `Dezinstalare_CursorPro.command` din rădăcina repo-ului, sursa
-   unică de adevăr.
+   `CursorProGDC-Mac.zip`, la rădăcina arhivei. NU genera un script nou de
+   fiecare dată — editează `Dezinstalare_CursorPro.command` din rădăcina
+   repo-ului, sursa unică de adevăr.
+
+**[ÎNVECHIT 2026-08-25]** Exista anterior un launcher `Instalare_CursorPro.command`
+care rula `xattr -dr com.apple.quarantine` pe `.pkg` înainte să-l deschidă —
+ELIMINAT complet (fișier șters din repo). Motiv: pachetul e deja semnat +
+notarizat + **stapled** (`xcrun stapler staple`, vezi `codesigning/sign-and-notarize.sh`),
+deci Gatekeeper îl acceptă NATIV la dublu-click, cu sau fără quarantine flag —
+orice comandă `xattr`/bypass e inutilă și arată neprofesionist/suspect,
+exact cum a semnalat corect Cristi. Arhiva `CursorProGDC-Mac.zip` conține
+acum DOAR 3 fișiere la rădăcină: `CursorProGDC.pkg`, `Dezinstalare_CursorPro.command`,
+PDF-ul de instrucțiuni. Curățarea unei instalări vechi (evitarea a două
+copii ale `.app` pe disc) se face acum corect, în `installer/scripts/preinstall`
+(`pkgbuild --scripts`) — pkill + `rm -rf` pe copia veche, NIMIC legat de
+Gatekeeper/quarantine acolo.
 3. **Sincronizare 100% site ↔ GitHub Release**: linkul de descărcare de pe
    `docs/index.html` trebuie să trimită mereu la
    `releases/latest/download/CursorProGDC-Mac.zip` (niciodată la un tag

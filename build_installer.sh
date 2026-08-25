@@ -29,11 +29,17 @@ mkdir -p "$PAYLOAD_ROOT/Applications"
 cp -R "/Applications/$APP_NAME" "$PAYLOAD_ROOT/Applications/$APP_NAME"
 
 echo "==> Building component package…"
+# --scripts: preinstall CURATA doar o instalare veche ramasa (pkill +
+# rm -rf /Applications/CursorPro.app), ca sa nu ramana doua copii ale
+# aplicatiei cu acelasi bundle ID pe disc. NU contine niciun hack de
+# Gatekeeper/quarantine - pachetul e semnat + notarizat + stapled mai jos,
+# deci Gatekeeper il accepta nativ (vezi CLAUDE.md, 2026-08-25).
 pkgbuild \
     --root "$PAYLOAD_ROOT" \
     --identifier "$PKG_ID" \
     --version "$VERSION" \
     --install-location "/" \
+    --scripts "installer/scripts" \
     "$COMPONENT_PKG"
 
 echo "==> Writing distribution definition…"
@@ -79,10 +85,6 @@ rm -rf "$PAYLOAD_ROOT" "$COMPONENT_PKG"
 # (so the landing page's link always resolves to whatever is newest).
 cp "$FINAL_PKG" "$DIST_DIR/CursorProGDC.pkg"
 
-echo "==> Copying first-run launcher (removes Gatekeeper quarantine automatically)…"
-cp "Instalare_CursorPro.command" "$DIST_DIR/Instalare_CursorPro.command"
-chmod +x "$DIST_DIR/Instalare_CursorPro.command"
-
 # REGULA PERMANENTA (2026-08-25): fiecare pachet trebuie sa includa un
 # uninstaller complet, nu doar instalatorul - vezi CLAUDE.md. Copiat aici,
 # nu generat din nou, ca sa nu existe doua surse de adevar pentru script.
@@ -90,24 +92,23 @@ echo "==> Copying uninstaller (Dezinstalare_CursorPro.command)…"
 cp "Dezinstalare_CursorPro.command" "$DIST_DIR/Dezinstalare_CursorPro.command"
 chmod +x "$DIST_DIR/Dezinstalare_CursorPro.command"
 
-# Bundle .pkg + launcher + uninstaller + instructions into one zip. The
-# website's download button links to THIS zip, not the bare .pkg — a
-# direct .pkg link means the user never sees Instalare_CursorPro.command
-# (sau uninstaller-ul), defeating the whole point of the launcher.
-echo "==> Building CursorProGDC-Mac.zip (pkg + launcher + uninstaller + instructions)…"
-# Instalare/Dezinstalare vizibile la radacina arhivei — pkg + PDF in
-# subfolder, ca sa nu existe confuzie despre ce se da dublu-click primul.
+# Bundle .pkg + uninstaller + instructions intr-un zip curat. Pachetul e
+# semnat + notarizat + stapled, deci Gatekeeper il accepta nativ la
+# dublu-click - NU mai exista niciun launcher/script de bypass (eliminat
+# 2026-08-25, vezi CLAUDE.md: "orice comanda xattr e inutila si arata
+# neprofesionist" cand certificarea Apple e deja in regula). Totul la
+# radacina arhivei, fara subfoldere - doar 3 fisiere, fara ambiguitate.
+echo "==> Building CursorProGDC-Mac.zip (pkg + uninstaller + instructions)…"
 ZIP_STAGE="$DIST_DIR/zip_stage"
 rm -rf "$ZIP_STAGE"
-mkdir -p "$ZIP_STAGE/Aplicatie"
-cp "$DIST_DIR/CursorProGDC.pkg" "$ZIP_STAGE/Aplicatie/"
-cp "installer/Instructiuni-CursorProGDC.pdf" "$ZIP_STAGE/Aplicatie/" 2>/dev/null || true
-cp "$DIST_DIR/Instalare_CursorPro.command" "$ZIP_STAGE/"
+mkdir -p "$ZIP_STAGE"
+cp "$DIST_DIR/CursorProGDC.pkg" "$ZIP_STAGE/"
+cp "installer/Instructiuni-CursorProGDC.pdf" "$ZIP_STAGE/" 2>/dev/null || true
 cp "$DIST_DIR/Dezinstalare_CursorPro.command" "$ZIP_STAGE/"
-chmod +x "$ZIP_STAGE/Instalare_CursorPro.command" "$ZIP_STAGE/Dezinstalare_CursorPro.command"
+chmod +x "$ZIP_STAGE/Dezinstalare_CursorPro.command"
 ( cd "$ZIP_STAGE" && zip -q -r -y "../CursorProGDC-Mac.zip" . )
 rm -rf "$ZIP_STAGE"
 
 echo "==> Done: $FINAL_PKG"
-echo "==> Also: $DIST_DIR/CursorProGDC.pkg, $DIST_DIR/Instalare_CursorPro.command, $DIST_DIR/Dezinstalare_CursorPro.command, $DIST_DIR/Instructiuni-CursorProGDC.pdf, $DIST_DIR/CursorProGDC-Mac.zip"
+echo "==> Also: $DIST_DIR/CursorProGDC.pkg, $DIST_DIR/Dezinstalare_CursorPro.command, $DIST_DIR/Instructiuni-CursorProGDC.pdf, $DIST_DIR/CursorProGDC-Mac.zip"
 echo "    Upload CursorProGDC-Mac.zip to the GitHub release (that's what the website links to)."

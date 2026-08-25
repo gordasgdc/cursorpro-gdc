@@ -1,0 +1,21 @@
+#!/bin/bash
+# Preinstall script rulat de installer.d (pkgbuild --scripts) INAINTE de a
+# scrie noua copie a aplicatiei.
+#
+# NU contine niciun hack de Gatekeeper/quarantine — pachetul e semnat cu
+# Developer ID Installer si notarizat/stapled, deci Gatekeeper il accepta
+# nativ, fara nicio interventie. Singurul scop aici: curatarea unei
+# instalari vechi ramase, ca sa nu existe doua copii ale aplicatiei cu
+# acelasi bundle ID pe disc (vezi memoria "cursorpro-project": doua copii
+# incurca TCC-ul si permisiunile acordate anterior nu mai raman valide).
+
+set -e
+
+pkill -x "CursorPro" 2>/dev/null || true
+sleep 1
+
+if [ -d "/Applications/CursorPro.app" ]; then
+    rm -rf "/Applications/CursorPro.app"
+fi
+
+exit 0
