@@ -66,9 +66,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         rebuildMenu()
     }
 
+    /// Versiunea curentă (`CFBundleShortVersionString`) — cerută explicit
+    /// 2026-08-25, "Directivă Permanentă Supremă": orice aplicație GDC
+    /// TREBUIE să-și arate versiunea vizibil în UI, fără excepție.
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+    }
+
     @objc private func rebuildMenu() {
         let menu = NSMenu()
-        menu.addItem(withTitle: L.t("menu.title"), action: nil, keyEquivalent: "").isEnabled = false
+        menu.addItem(withTitle: "\(L.t("menu.title")) — v\(appVersion)", action: nil, keyEquivalent: "").isEnabled = false
 
         let license = LicenseManager.shared
         let licenseItem = NSMenuItem(title: licenseMenuLine(license), action: #selector(openLicense), keyEquivalent: "")
