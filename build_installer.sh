@@ -83,23 +83,31 @@ echo "==> Copying first-run launcher (removes Gatekeeper quarantine automaticall
 cp "Instalare_CursorPro.command" "$DIST_DIR/Instalare_CursorPro.command"
 chmod +x "$DIST_DIR/Instalare_CursorPro.command"
 
-# Bundle .pkg + launcher + instructions into one zip. The website's
-# download button links to THIS zip, not the bare .pkg — a direct .pkg
-# link means the user never sees Instalare_CursorPro.command, defeating
-# the whole point of the launcher.
-echo "==> Building CursorProGDC-Mac.zip (pkg + launcher + instructions)…"
-# Only the .command is visible at the archive root — pkg + PDF go in a
-# subfolder, so there's no confusion about what to double-click first.
+# REGULA PERMANENTA (2026-08-25): fiecare pachet trebuie sa includa un
+# uninstaller complet, nu doar instalatorul - vezi CLAUDE.md. Copiat aici,
+# nu generat din nou, ca sa nu existe doua surse de adevar pentru script.
+echo "==> Copying uninstaller (Dezinstalare_CursorPro.command)…"
+cp "Dezinstalare_CursorPro.command" "$DIST_DIR/Dezinstalare_CursorPro.command"
+chmod +x "$DIST_DIR/Dezinstalare_CursorPro.command"
+
+# Bundle .pkg + launcher + uninstaller + instructions into one zip. The
+# website's download button links to THIS zip, not the bare .pkg — a
+# direct .pkg link means the user never sees Instalare_CursorPro.command
+# (sau uninstaller-ul), defeating the whole point of the launcher.
+echo "==> Building CursorProGDC-Mac.zip (pkg + launcher + uninstaller + instructions)…"
+# Instalare/Dezinstalare vizibile la radacina arhivei — pkg + PDF in
+# subfolder, ca sa nu existe confuzie despre ce se da dublu-click primul.
 ZIP_STAGE="$DIST_DIR/zip_stage"
 rm -rf "$ZIP_STAGE"
 mkdir -p "$ZIP_STAGE/Aplicatie"
 cp "$DIST_DIR/CursorProGDC.pkg" "$ZIP_STAGE/Aplicatie/"
 cp "installer/Instructiuni-CursorProGDC.pdf" "$ZIP_STAGE/Aplicatie/" 2>/dev/null || true
 cp "$DIST_DIR/Instalare_CursorPro.command" "$ZIP_STAGE/"
-chmod +x "$ZIP_STAGE/Instalare_CursorPro.command"
+cp "$DIST_DIR/Dezinstalare_CursorPro.command" "$ZIP_STAGE/"
+chmod +x "$ZIP_STAGE/Instalare_CursorPro.command" "$ZIP_STAGE/Dezinstalare_CursorPro.command"
 ( cd "$ZIP_STAGE" && zip -q -r -y "../CursorProGDC-Mac.zip" . )
 rm -rf "$ZIP_STAGE"
 
 echo "==> Done: $FINAL_PKG"
-echo "==> Also: $DIST_DIR/CursorProGDC.pkg, $DIST_DIR/Instalare_CursorPro.command, $DIST_DIR/Instructiuni-CursorProGDC.pdf, $DIST_DIR/CursorProGDC-Mac.zip"
+echo "==> Also: $DIST_DIR/CursorProGDC.pkg, $DIST_DIR/Instalare_CursorPro.command, $DIST_DIR/Dezinstalare_CursorPro.command, $DIST_DIR/Instructiuni-CursorProGDC.pdf, $DIST_DIR/CursorProGDC-Mac.zip"
 echo "    Upload CursorProGDC-Mac.zip to the GitHub release (that's what the website links to)."
