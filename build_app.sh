@@ -52,8 +52,20 @@ if [ -d "$INSTALLED" ]; then
 fi
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 "$LSREGISTER" -u "$INSTALLED" 2>/dev/null || true
-rm -rf "$INSTALLED"
-rm -rf "$APP" # stray leftover from older versions of this script, if present
-mv "$BUILD_OUT" "$INSTALLED"
+# sudo on purpose: a previous .pkg-based install (or Installer.app) can
+# leave /Applications/CursorPro.app root-owned, which makes a plain
+# rm/mv fail with "Permission denied" - asking for the admin password up
+# front here means the script always works, prompting only when
+# actually needed (sudo -n checks first, no prompt if already owned by
+# the current user). Vezi build_app.sh din GDCPluginManager - acelasi fix.
+if [ -e "$INSTALLED" ] && [ ! -O "$INSTALLED" ]; then
+    sudo rm -rf "$INSTALLED"
+    sudo mv "$BUILD_OUT" "$INSTALLED"
+    sudo chown -R "$(id -u):$(id -g)" "$INSTALLED"
+else
+    rm -rf "$INSTALLED"
+    rm -rf "$APP" # stray leftover from older versions of this script, if present
+    mv "$BUILD_OUT" "$INSTALLED"
+fi
 "$LSREGISTER" -f "$INSTALLED" 2>/dev/null || true
 echo "Installed to $INSTALLED"
