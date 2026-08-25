@@ -28,8 +28,19 @@ cp AppIcon.icns "$BUILD_OUT/Contents/Resources/AppIcon.icns"
 # permissions to silently stop applying. A real (even self-signed, local)
 # identity stays the same across every future rebuild, so permissions
 # granted once should keep working from here on.
-SIGN_IDENTITY="CursorPro"
-codesign --force --deep --sign "$SIGN_IDENTITY" "$BUILD_OUT"
+#
+# GDC-SEC: odata trecut la Developer ID real (vezi codesigning/README.md),
+# identitatea de semnare SE SCHIMBA fata de "CursorPro" ad-hoc - macOS va
+# trata asta ca o aplicatie noua pentru TCC O SINGURA DATA, deci userii
+# vor trebui sa re-acorde manual Accessibility/Screen Recording dupa
+# PRIMA actualizare la versiunea semnata cu Developer ID. Mentioneaza
+# asta explicit in notele de release ale acelei versiuni.
+if [ -n "${APPLE_SIGN_IDENTITY_APP:-}" ]; then
+    ./codesigning/sign-and-notarize.sh app "$BUILD_OUT"
+else
+    SIGN_IDENTITY="CursorPro"
+    codesign --force --deep --sign "$SIGN_IDENTITY" "$BUILD_OUT"
+fi
 
 # Install straight to /Applications (the one macOS Privacy & Security
 # actually lists, and the one permission grants attach to), then remove
