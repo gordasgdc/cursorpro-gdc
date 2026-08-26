@@ -7,9 +7,13 @@ import AppKit
 /// no-extra-infrastructure version: one click to check, one click to go
 /// get the new build.
 enum UpdateChecker {
-    /// gordasgdc/cursorpro — update if the repo is renamed.
-    private static let latestReleaseAPIURL = URL(string: "https://api.github.com/repos/gordasgdc/cursorpro/releases/latest")!
-    private static let releasesPageURL = URL(string: "https://github.com/gordasgdc/cursorpro/releases/latest")!
+    /// gordasgdc/cursorpro-gdc — BUG REAL gasit 2026-08-26: slug-ul vechi
+    /// "cursorpro" (fara "-gdc") da 404 la orice verificare, de la inceputul
+    /// repo-ului — niciun client CursorPro n-a primit vreodata o notificare
+    /// de update, fail-open silentios (eroarea de retea era tratata identic
+    /// cu "esec normal", fara alertare). Verifica din nou daca repo-ul e redenumit.
+    private static let latestReleaseAPIURL = URL(string: "https://api.github.com/repos/gordasgdc/cursorpro-gdc/releases/latest")!
+    private static let releasesPageURL = URL(string: "https://github.com/gordasgdc/cursorpro-gdc/releases/latest")!
 
     static var currentVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
