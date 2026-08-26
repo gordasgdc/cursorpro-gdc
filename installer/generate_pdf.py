@@ -86,7 +86,7 @@ RO = dict(
             "Apasă „Scrie-mi pe WhatsApp pentru licență” — mesajul include automat ID-ul tău.",
             "După ce primești codul de licență, lipește-l în câmpul dedicat și apasă Activează.",
         ]),
-        ("", ("<b>Donație, nu preț de listă:</b> 9 € — susține continuarea dezvoltării aplicației, o singură dată, fără abonament. Nu e o vânzare — activarea se face manual, prin WhatsApp, pe baza donației.",)),
+        ("", ("<b>Donație:</b> 9 € — susține continuarea dezvoltării aplicației, o singură dată, fără abonament. Nu e o vânzare — activarea se face manual, prin WhatsApp, pe baza donației.",)),
         ("5. Actualizări", "Din meniul CursorPro GDC (bara de sus) → „Caută actualizări…” — verifică dacă există o versiune mai nouă și te duce direct la pagina de descărcare dacă da."),
         ("6. Suport", "Pentru orice întrebare, scrie-mi pe WhatsApp (buton în Preferințe → Licență) sau deschide un Issue pe GitHub."),
     ],
