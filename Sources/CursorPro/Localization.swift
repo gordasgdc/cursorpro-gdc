@@ -182,8 +182,8 @@ enum L {
         "license.activate": [.ro: "Activează", .en: "Activate", .es: "Activar"],
         "license.deactivate": [.ro: "Dezactivează pe acest calculator", .en: "Deactivate on this Mac", .es: "Desactivar en este Mac"],
         "license.buy.title": [.ro: "Nu ai încă o licență?", .en: "Don't have a license yet?", .es: "¿Aún no tienes una licencia?"],
-        "license.buy.price": [.ro: "9 € — o singură dată, fără abonament.", .en: "€9 — one-time, no subscription.", .es: "9 € — pago único, sin suscripción."],
-        "license.buy.button": [.ro: "Scrie-mi pe WhatsApp ca să cumperi", .en: "Message me on WhatsApp to buy", .es: "Escríbeme por WhatsApp para comprar"],
+        "license.buy.price": [.ro: "9 € — donație unică, fără abonament, pentru susținerea dezvoltării.", .en: "€9 — one-time donation, no subscription, to support development.", .es: "9 € — donación única, sin suscripción, para apoyar el desarrollo."],
+        "license.buy.button": [.ro: "Scrie-mi pe WhatsApp pentru licență", .en: "Message me on WhatsApp for a license", .es: "Escríbeme por WhatsApp para la licencia"],
         "license.error.malformed": [.ro: "Codul nu e valid — verifică să-l fi copiat complet.", .en: "That code isn't valid — check you copied all of it.", .es: "Ese código no es válido — comprueba que lo copiaste completo."],
         "license.error.badSignature": [.ro: "Codul nu e valid.", .en: "That code isn't valid.", .es: "Ese código no es válido."],
         "license.error.wrongProduct": [.ro: "Acest cod e pentru altă aplicație.", .en: "This code is for a different app.", .es: "Este código es para otra aplicación."],
@@ -192,9 +192,9 @@ enum L {
         "license.activated.success": [.ro: "Activat cu succes!", .en: "Activated successfully!", .es: "¡Activado correctamente!"],
 
         "license.machineID.title": [.ro: "ID-ul calculatorului tău", .en: "Your Mac's ID", .es: "El ID de tu Mac"],
-        "license.machineID.body": [.ro: "Trimite-mi acest cod când cumperi o licență — o leagă de calculatorul acesta, ca să nu poată fi folosită de altcineva.",
-                                    .en: "Send me this code when you buy a license — it ties it to this Mac, so it can't be used by anyone else.",
-                                    .es: "Envíame este código cuando compres una licencia — la vincula a este Mac, para que nadie más pueda usarla."],
+        "license.machineID.body": [.ro: "Trimite-mi acest cod când faci donația pentru licență — o leagă de calculatorul acesta, ca să nu poată fi folosită de altcineva.",
+                                    .en: "Send me this code when you donate for a license — it ties it to this Mac, so it can't be used by anyone else.",
+                                    .es: "Envíame este código cuando hagas la donación por la licencia — la vincula a este Mac, para que nadie más pueda usarla."],
         "license.machineID.copy": [.ro: "Copiază", .en: "Copy", .es: "Copiar"],
         "license.machineID.copied": [.ro: "Copiat!", .en: "Copied!", .es: "¡Copiado!"],
 
