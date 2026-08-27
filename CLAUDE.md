@@ -382,7 +382,18 @@ doar un link:
   versiunii noi** (pop-up, texte, dismissal) — doar acțiunea butonului
   principal se schimbă: NU mai deschide un link, cheamă Self-Updater-ul.
 
-**Status acest repo (2026-08-27): NEIMPLEMENTAT — OBLIGATORIU la următoarea actualizare.** Are `Sources/CursorPro/UpdateChecker.swift`, dar fără Self-Updater — portează `SelfUpdater.swift` 1:1 din `GDCVault`/`DataMover`. Doar aplicație Mac.
+**Status acest repo (2026-08-27): IMPLEMENTAT.** `Sources/CursorPro/
+SelfUpdater.swift` (nou, port 1:1 din `GDCVault`/`DataMover`/
+`CGConvertor`) — `UpdateChecker.swift` citește URL-ul asset-ului
+`CursorProGDC.pkg` din `assets[]`. Include o fereastră minimală de
+progres proprie (`UpdateProgressWindow`, `window.level = .floating`) —
+necesară explicit aici: CursorPro e `LSUIElement` (menu-bar-only, fără
+Dock icon), fără ea userul n-ar vedea NIMIC cât timp update-ul se
+descarcă/instalează. Versiune → `1.0.4`. **WARNING nemodificat**: pasul
+de instalare (promptul de parolă admin) nu poate fi verificat automat —
+necesită confirmare manuală, o dată, de Cristi. Doar aplicație Mac (fără
+client Windows, confirmat — nu există niciun proiect `.csproj`/WPF în
+acest repo).
 
 ## [PARTEA 2: SPECIFICAȚII TEHNICE PROIECT]
 

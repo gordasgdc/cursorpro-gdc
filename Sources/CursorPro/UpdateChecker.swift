@@ -32,7 +32,7 @@ enum UpdateChecker {
 
     private enum Result {
         case upToDate
-        case newVersion(String)
+        case newVersion(String, URL)
         case error
     }
 
@@ -47,10 +47,16 @@ enum UpdateChecker {
                 return .error
             }
             let latest = tag.hasPrefix("v") ? String(tag.dropFirst()) : tag
-            if isVersion(latest, newerThan: currentVersion) {
-                return .newVersion(latest)
+            guard isVersion(latest, newerThan: currentVersion) else { return .upToDate }
+
+            // Asset-ul .pkg cu nume STABIL ("CursorProGDC.pkg") publicat de
+            // build_installer.sh la fiecare release.
+            let assets = json["assets"] as? [[String: Any]] ?? []
+            let pkgAsset = assets.first { ($0["name"] as? String) == "CursorProGDC.pkg" }
+            guard let urlString = pkgAsset?["browser_download_url"] as? String, let pkgURL = URL(string: urlString) else {
+                return .newVersion(latest, releasesPageURL)
             }
-            return .upToDate
+            return .newVersion(latest, pkgURL)
         } catch {
             return .error
         }
@@ -76,13 +82,13 @@ enum UpdateChecker {
             alert.informativeText = String(format: L.t("update.upToDate"), currentVersion)
             alert.addButton(withTitle: "OK")
             alert.runModal()
-        case .newVersion(let version):
+        case .newVersion(let version, let pkgURL):
             alert.messageText = L.t("menu.checkForUpdates")
             alert.informativeText = String(format: L.t("update.available"), version, currentVersion)
             alert.addButton(withTitle: L.t("update.download"))
             alert.addButton(withTitle: "OK")
             if alert.runModal() == .alertFirstButtonReturn {
-                NSWorkspace.shared.open(releasesPageURL)
+                Task { await SelfUpdater.downloadAndInstall(pkgURL: pkgURL, version: version) }
             }
         case .error:
             alert.messageText = L.t("menu.checkForUpdates")

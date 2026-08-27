@@ -204,7 +204,7 @@ enum L {
         "update.checking": [.ro: "Se caută actualizări…", .en: "Checking for updates…", .es: "Buscando actualizaciones…"],
         "update.upToDate": [.ro: "Ai deja ultima versiune (%@).", .en: "You're already on the latest version (%@).", .es: "Ya tienes la última versión (%@)."],
         "update.available": [.ro: "E disponibilă versiunea %@ (ai %@).", .en: "Version %@ is available (you have %@).", .es: "La versión %@ está disponible (tienes %@)."],
-        "update.download": [.ro: "Descarcă", .en: "Download", .es: "Descargar"],
+        "update.download": [.ro: "Actualizează acum", .en: "Update now", .es: "Actualizar ahora"],
         "update.error": [.ro: "Nu am putut verifica actualizările — verifică conexiunea la internet.", .en: "Couldn't check for updates — check your internet connection.", .es: "No se pudieron buscar actualizaciones — comprueba tu conexión a internet."],
     ]
 }
