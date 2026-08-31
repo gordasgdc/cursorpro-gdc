@@ -45,9 +45,27 @@ final class ZoomWindowController: NSObject {
     private var frameCount = 0
 
     private var cachedDisplays: [SCDisplay] = []
-    /// Our own app's windows (the full-screen Halo/Spotlight/Draw overlay
-    /// + this very loupe window) — excluded from every capture so we
-    /// never magnify our own decorations by accident.
+    /// ONLY the full-screen Halo/Spotlight/Draw overlay windows + this
+    /// very loupe window — excluded from every capture so we never
+    /// magnify our own transparent decorations by accident.
+    ///
+    /// BUG REAL (raportat de Cristi, 2026-08-31: zoom-ul arata continut
+    /// "de departe, din lateral" cand incerca sa faca zoom chiar pe
+    /// fereastra de Preferinte a aplicatiei). Cauza reala, confirmata din
+    /// `~/Desktop/cursorpro_debug.log`: matematica de urmarire a
+    /// cursorului era mereu corecta (crop-ul era mereu centrat exact pe
+    /// pozitia reala a cursorului) — problema era ca acest filtru excludea
+    /// TOATE ferestrele detinute de procesul CursorPro, inclusiv fereastra
+    /// normala de Preferinte (nu doar overlay-urile transparente). Cand
+    /// userul tinea zoom-ul chiar deasupra propriei ferestre de Preferinte
+    /// (exact scenariul de test), ScreenCaptureKit o ascundea din captura —
+    /// lupa arata deci, corect din punct de vedere geometric, CE ERA IN
+    /// SPATELE ei pe ecran (o alta fereastra, oriunde s-ar fi aflat), nu
+    /// fereastra pe care userul chiar voia sa o vada marita. Fix: excludem
+    /// acum STRICT overlay-urile transparente (Halo/Spotlight/Draw) + lupa
+    /// insasi, identificate dupa `windowNumber` (via `AppDelegate.shared`),
+    /// nu mai excludem dupa PID (care prindea orbeste orice fereastra
+    /// reala a aplicatiei, prezenta sau viitoare).
     private var ownWindowsToExclude: [SCWindow] = []
     private var isRefreshingDisplays = false
 
@@ -270,9 +288,12 @@ final class ZoomWindowController: NSObject {
             do {
                 let content = try await SCShareableContent.current
                 self.cachedDisplays = content.displays
-                let myPID = ProcessInfo.processInfo.processIdentifier
-                self.ownWindowsToExclude = content.windows.filter { $0.owningApplication?.processID == myPID }
-                DebugLog.log("refreshDisplays: got \(content.displays.count) displays, excluding \(self.ownWindowsToExclude.count) of our own windows")
+                var excludeIDs = Set(AppDelegate.shared?.overlayWindowIDs ?? [])
+                if let loupeWindowNumber = self.window?.windowNumber {
+                    excludeIDs.insert(CGWindowID(loupeWindowNumber))
+                }
+                self.ownWindowsToExclude = content.windows.filter { excludeIDs.contains($0.windowID) }
+                DebugLog.log("refreshDisplays: got \(content.displays.count) displays, excluding \(self.ownWindowsToExclude.count) overlay/loupe windows (was excluding ALL own-process windows before this fix)")
             } catch {
                 DebugLog.log("refreshDisplays: FAILED: \(error)")
             }
@@ -345,6 +366,29 @@ extension ZoomWindowController: SCStreamOutput, SCStreamDelegate {
         // bottom-left corner," in points, then scaled to pixels.
         let localXPoints = (cursor.x - radius) - streamedRect.origin.x
         let localYPoints = (cursor.y - radius) - streamedRect.origin.y
+
+        // BUG REAL (raportat de Cristi, 2026-08-31: "fac zoom si imi apare
+        // dintr-o zona complet diferita, din lateral, de departe" — mai ales
+        // la miscari rapide/mari ale mouse-ului, exact ce se intampla intr-o
+        // prezentare). Cauza: cand mouse-ul sare o distanta mare intr-un
+        // singur tick (33ms), fereastra lupei se muta INSTANT la pozitia noua
+        // (`reposition()`, sincron), dar stream-ul ScreenCaptureKit inca
+        // livreaza cadre din REGIUNEA VECHE pana se termina re-centrarea
+        // asincrona (`recenterStreamIfNeeded`, poate dura 100-300ms). Codul
+        // vechi calcula crop-ul geometric fata de regiunea veche si, daca
+        // exista orice suprapunere nevida cu cadrul curent, il afisa oricum —
+        // deci userul vedea, pentru o fractiune de secunda, continut real de
+        // pe ecran, dar dintr-o zona complet neinrudita cu pozitia actuala a
+        // cursorului. Fix: daca centrul regiunii transmise curent e prea
+        // departe de cursorul REAL de acum, cadrul e cunoscut ca fiind stale
+        // — se sare afisarea lui (pastram ultima imagine buna) in loc sa
+        // aratam ceva clar gresit, pana cand re-centrarea aduce cadre noi,
+        // corecte.
+        let driftFromCenter = hypot(cursor.x - streamedRect.midX, cursor.y - streamedRect.midY)
+        guard driftFromCenter <= radius * 2.5 else {
+            if n <= 3 { DebugLog.log("didOutputSampleBuffer #\(n): stream stale (drift=\(driftFromCenter)), skipping frame") }
+            return
+        }
 
         let cropRect = CGRect(
             x: localXPoints * sx,

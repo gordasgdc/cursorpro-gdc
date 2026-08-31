@@ -1,6 +1,13 @@
 import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
+    /// Exposed so `ZoomWindowController` can find out which of our OWN
+    /// windows are the full-screen transparent overlays (Halo/Spotlight/
+    /// Draw) that must never appear inside the Zoom loupe — see
+    /// `overlayWindowIDs` below for why this can't just be "every window
+    /// owned by our process ID" anymore.
+    private(set) static weak var shared: AppDelegate?
+
     private var statusItem: NSStatusItem!
     private var overlayWindows: [OverlayWindow] = []
     private let inputMonitor = InputMonitor()
@@ -9,6 +16,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var permissionsSubmenu: NSMenu?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        Self.shared = self
         NSApp.setActivationPolicy(.accessory) // menu-bar only, no Dock icon, no app switcher entry
 
         // Refuse to run as a second instance. Two copies polling
@@ -222,6 +230,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func screensChanged() {
         buildOverlays()
+    }
+
+    /// Window numbers of the always-on, full-screen transparent overlay
+    /// windows (Halo cursor / Spotlight / Draw) — these must be excluded
+    /// from ScreenCaptureKit's Zoom capture (they're invisible passthrough
+    /// windows that would otherwise show up as a weird flat tint over
+    /// everything in the loupe). Anything else CursorPro owns — the
+    /// Preferences window, the update-progress window — is a REAL window
+    /// the user can legitimately point the Zoom magnifier at, and must
+    /// stay visible in the capture.
+    var overlayWindowIDs: [CGWindowID] {
+        overlayWindows.map { CGWindowID($0.windowNumber) }
     }
 
     private func buildOverlays() {
