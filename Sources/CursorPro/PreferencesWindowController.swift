@@ -498,15 +498,22 @@ private struct ShortcutRecorderButton: View {
 
 private struct LicensePane: View {
     @ObservedObject private var license = LicenseManager.shared
+    @ObservedObject private var pricing = PricingChecker.shared
     @State private var codeField = ""
     @State private var justActivated = false
     @State private var justCopiedMachineID = false
 
     private static let machineID = MachineID.display
 
-    private static var whatsAppURL: URL {
-        let text = "Salut! Vreau să cumpăr o licență CursorPro GDC. ID calculator: \(machineID)"
+    private var whatsAppURL: URL {
+        let priceText = formattedPrice(pricing.effectivePrice)
+        let text = "Salut! Vreau să donez \(priceText) pentru licența CursorPro GDC. ID calculator: \(Self.machineID)"
         return WhatsAppLink.url(text: text)
+    }
+
+    private func formattedPrice(_ value: Double) -> String {
+        let isWhole = value.truncatingRemainder(dividingBy: 1) == 0
+        return "\(isWhole ? String(Int(value)) : String(value)) €"
     }
 
     var body: some View {
@@ -614,13 +621,23 @@ private struct LicensePane: View {
     private var buyCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(L.t("license.buy.title")).font(.headline)
-            Text(L.t("license.buy.price")).font(.callout).foregroundStyle(.secondary)
-            Button(L.t("license.buy.button")) { NSWorkspace.shared.open(Self.whatsAppURL) }
+            // Preț dinamic (Regula 27) - vezi PricingChecker. Fail-open pe
+            // 9 € (valoarea hardcodata anterior in Localization.swift) daca
+            // pricing.json nu e accesibil.
+            if let promo = pricing.activePromo {
+                Text("🔥 \(promo.label): \(formattedPrice(promo.price)) (în loc de \(formattedPrice(pricing.basePrice))) — donație unică, fără abonament.")
+                    .font(.callout).foregroundStyle(.orange)
+            } else {
+                Text("\(formattedPrice(pricing.effectivePrice)) — donație unică, fără abonament, pentru susținerea dezvoltării.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            Button(L.t("license.buy.button")) { NSWorkspace.shared.open(whatsAppURL) }
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor)))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(nsColor: .separatorColor), lineWidth: 1))
+        .onAppear { pricing.refresh() }
     }
 }
 
