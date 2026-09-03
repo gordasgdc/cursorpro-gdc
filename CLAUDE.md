@@ -391,9 +391,14 @@ necesară explicit aici: CursorPro e `LSUIElement` (menu-bar-only, fără
 Dock icon), fără ea userul n-ar vedea NIMIC cât timp update-ul se
 descarcă/instalează. Versiune → `1.0.4`. **WARNING nemodificat**: pasul
 de instalare (promptul de parolă admin) nu poate fi verificat automat —
-necesită confirmare manuală, o dată, de Cristi. Doar aplicație Mac (fără
-client Windows, confirmat — nu există niciun proiect `.csproj`/WPF în
-acest repo).
+necesită confirmare manuală, o dată, de Cristi.
+
+**[CORECTAT 2026-09-04]** Afirmația "doar aplicație Mac, fără client
+Windows" de mai sus NU mai e adevărată — vezi
+`~/Developer/CursorProWin` (`gordasgdc/cursorpro-gdc-win`, repo nou,
+public), primul schelet (tray icon + Licență) portat 1:1. Self-Updater-ul
+de mai sus rămâne NEPORTAT încă pe Windows — vezi `CHANGELOG.md` din acel
+repo pentru lista completă TODO paritate.
 
 
 **21. Memory & I/O Performance — obligatoriu pentru orice aplicatie care
@@ -701,6 +706,38 @@ clase, cauze tehnice) unei audiențe publice necunoscute.
   (v2.9.0, v2.8.0), `mac-master-control-pro-win` (v1.10.0),
   `MediaFlow-Monitor` (v1.0.0/v1.0.1) — restul release-urilor mai vechi din
   ecosistem rămân de verificat incremental, nu toate dintr-o dată.
+
+**30. Zero cod "impur" sau nelalocul lui — orice implementare TREBUIE
+finalizată complet, nu doar compilată (2026-09-03).** Cerință explicită de
+la Cristi, după un incident real: un fix scris în cod dar nepropagat peste
+tot unde era nevoie (versiune, `update.json`, ambele platforme, ambele
+aplicații) a lăsat sistemul într-o stare pe jumătate — "să nu rămână nimic
+inpur și nelalocul lui, să se implementeze tot ce am actualizat și am
+creat, să nu mai avem probleme". Regulă practică, obligatorie la orice
+schimbare de cod:
+- Orice constantă/valoare copiată dintr-un alt fișier/repo (chei, ID-uri,
+  praguri, URL-uri) se verifică ACTIV cu `grep`, nu se presupune corectă
+  doar pentru că a fost copiată — un audit se oprește abia când TOATE
+  aparițiile au fost verificate, nu doar cea raportată inițial.
+- O funcționalitate nouă/modificată se declară "gata" abia după ce
+  TOATE piesele ei sunt implementate și verificate — cod, rebuild+reinstall
+  (Regula 0), versiune sincronizată peste tot unde trebuie (Regula 14),
+  paritate Mac/Windows dacă aplică (regula de mai jos), `CHANGELOG.md`
+  (Regula 25). O piesă lăsată "pentru mai târziu" se spune EXPLICIT, nu se
+  ascunde într-un răspuns care sună ca "gata".
+- Orice implementare/îmbunătățire nouă a acestei Părți 1 se scrie DIN
+  START în `CLAUDE.md`-ul TUTUROR proiectelor din `~/Developer/` (Regula
+  11) — nu doar în repo-ul unde a pornit discuția.
+
+**31. Paritate Mac/Windows imediată, în aceeași sesiune (2026-09-03).**
+Completare la Regula 30: orice schimbare de cod livrată pe Mac care are un
+echivalent Windows în ecosistem (și invers) se portează 1:1 ÎN ACEEAȘI
+SESIUNE, fără să aștepți o cerere separată de la Cristi — portul e parte
+integrantă a schimbării, nu un TODO ulterior. Dacă portul chiar nu poate
+fi făcut acum (acces la mediul Windows indisponibil, testare reală
+imposibilă), se spune EXPLICIT ce lipsește și de ce, marcat clar în
+`CHANGELOG.md` ca "TODO paritate Windows/Mac" (Regula existentă de
+documentație) — nu se lasă nemenționat.
 
 ## [PARTEA 2: SPECIFICAȚII TEHNICE PROIECT]
 
