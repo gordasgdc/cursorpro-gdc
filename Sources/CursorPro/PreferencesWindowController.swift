@@ -839,6 +839,13 @@ private struct HelpPane: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
+            Button {
+                HelpGuide.openPDF()
+            } label: {
+                Label(L.t("menu.helpGuide"), systemImage: "doc.richtext")
+            }
+            .buttonStyle(.bordered)
+
             helpSection(icon: "circle.dashed", titleKey: "help.halo.title", bodyKey: "help.halo.body")
             helpSection(icon: "flashlight.on.fill", titleKey: "help.spotlight.title", bodyKey: "help.spotlight.body")
             helpSection(icon: "pencil.tip", titleKey: "help.draw.title", bodyKey: "help.draw.body")

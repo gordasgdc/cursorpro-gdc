@@ -7,7 +7,14 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "CursorPro",
-            path: "Sources/CursorPro"
+            path: "Sources/CursorPro",
+            resources: [
+                // Ghid PDF (RO/EN/ES, o singură pagină per limbă) — deschis
+                // din meniul Ajutor și din HelpPane. Generat cu
+                // installer/generate_pdf.py — rulează scriptul din nou și
+                // suprascrie acest fișier la orice schimbare de conținut.
+                .copy("Resources/Instructiuni-CursorProGDC.pdf"),
+            ]
         )
     ]
 )
