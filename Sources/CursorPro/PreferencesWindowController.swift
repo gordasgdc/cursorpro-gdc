@@ -36,7 +36,7 @@ final class PreferencesWindowController: NSWindowController {
 }
 
 private enum PrefPane: String, CaseIterable, Identifiable {
-    case general, halo, spotlight, draw, zoom, shortcuts, permissions, license, help
+    case general, halo, spotlight, draw, clicks, keystrokes, zoom, shortcuts, permissions, license, help
     var id: String { rawValue }
 
     var title: String {
@@ -45,6 +45,8 @@ private enum PrefPane: String, CaseIterable, Identifiable {
         case .halo: return L.t("sidebar.halo")
         case .spotlight: return L.t("sidebar.spotlight")
         case .draw: return L.t("sidebar.draw")
+        case .clicks: return L.t("sidebar.clicks")
+        case .keystrokes: return L.t("sidebar.keystrokes")
         case .zoom: return L.t("sidebar.zoom")
         case .shortcuts: return L.t("sidebar.shortcuts")
         case .permissions: return L.t("sidebar.permissions")
@@ -59,6 +61,8 @@ private enum PrefPane: String, CaseIterable, Identifiable {
         case .halo: return "circle.dashed"
         case .spotlight: return "flashlight.on.fill"
         case .draw: return "pencil.tip"
+        case .clicks: return "hand.point.up.left"
+        case .keystrokes: return "command"
         case .zoom: return "plus.magnifyingglass"
         case .shortcuts: return "keyboard"
         case .permissions: return "lock.shield"
@@ -86,6 +90,8 @@ struct PreferencesView: View {
                     case .halo: haloPane
                     case .spotlight: spotlightPane
                     case .draw: drawPane
+                    case .clicks: clicksPane
+                    case .keystrokes: keystrokesPane
                     case .zoom: zoomPane
                     case .shortcuts: shortcutsPane
                     case .permissions: PermissionsPane()
@@ -128,7 +134,79 @@ struct PreferencesView: View {
                         }
                     )).labelsHidden()
                 }
+                Divider()
+                labeledRow(L.t("prefs.multiDisplayPing")) {
+                    Toggle("", isOn: $state.multiDisplayPingEnabled).labelsHidden()
+                }
             }
+
+            Text(L.t("prefs.focusPreset")).font(.headline)
+            card {
+                HStack(spacing: 10) {
+                    ForEach(AppState.FocusPreset.allCases) { preset in
+                        Button(preset.displayName) { state.apply(preset: preset) }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            Text(L.t("prefs.focusPreset.hint"))
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    // MARK: - Click Effects
+
+    private var clicksPane: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            paneTitle(L.t("sidebar.clicks"))
+            card {
+                labeledRow(L.t("prefs.enabled")) {
+                    Toggle("", isOn: $state.clickEffectsEnabled).labelsHidden()
+                }
+                Divider()
+                labeledRow(L.t("prefs.clickEffects.left")) {
+                    ColorPicker("", selection: colorBinding(\.leftClickColor)).labelsHidden()
+                }
+                Divider()
+                labeledRow(L.t("prefs.clickEffects.right")) {
+                    ColorPicker("", selection: colorBinding(\.rightClickColor)).labelsHidden()
+                }
+                Divider()
+                labeledRow(L.t("prefs.clickEffects.double")) {
+                    ColorPicker("", selection: colorBinding(\.doubleClickColor)).labelsHidden()
+                }
+                Divider()
+                secondsSliderRow(L.t("prefs.clickEffects.duration"), value: $state.clickEffectDuration, range: 0.2...1.2)
+            }
+            Text(L.t("prefs.clickEffects.hint"))
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    // MARK: - Keystroke Overlay
+
+    private var keystrokesPane: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            paneTitle(L.t("sidebar.keystrokes"))
+            card {
+                labeledRow(L.t("prefs.enabled")) {
+                    Toggle("", isOn: $state.keystrokeOverlayEnabled).labelsHidden()
+                }
+                Divider()
+                percentSliderRow(L.t("prefs.keystroke.size"), value: $state.keystrokeScale, range: 0.5...2.0)
+                Divider()
+                percentSliderRow(L.t("prefs.keystroke.opacity"), value: $state.keystrokeOpacity, range: 0.2...1.0)
+                Divider()
+                secondsSliderRow(L.t("prefs.keystroke.duration"), value: $state.keystrokeDisplayDuration, range: 0.6...2.5)
+            }
+            Text(L.t("prefs.keystroke.hint"))
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -216,17 +294,39 @@ struct PreferencesView: View {
             paneTitle(L.t("sidebar.zoom"))
             card {
                 labeledRow(L.t("prefs.zoomLevel")) {
-                    Picker("", selection: $state.zoomFactor) {
-                        ForEach(AppState.zoomFactorOptions, id: \.self) { factor in
-                            Text("\(Int(factor))x").tag(factor)
-                        }
+                    HStack(spacing: 10) {
+                        Slider(value: $state.zoomFactor, in: AppState.zoomFactorRange, step: 0.1)
+                        TextField("", value: $state.zoomFactor, formatter: Self.zoomFactorFormatter)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 44)
+                        Text("×").foregroundStyle(.secondary)
+                    }
+                    .frame(width: 320)
+                }
+                Divider()
+                labeledRow(L.t("prefs.zoom.scaling")) {
+                    Picker("", selection: $state.magnifierSmoothScaling) {
+                        Text(L.t("prefs.zoom.scaling.smooth")).tag(true)
+                        Text(L.t("prefs.zoom.scaling.crisp")).tag(false)
                     }
                     .pickerStyle(.segmented)
                     .labelsHidden()
                     .frame(width: 260)
                 }
+                Divider()
+                labeledRow(L.t("prefs.zoom.colorPicker")) {
+                    Toggle("", isOn: $state.magnifierColorPickerEnabled).labelsHidden()
+                }
+                Divider()
+                labeledRow(L.t("prefs.zoom.lockFrame")) {
+                    KeyComboRecorderButton(combo: $state.magnifierLockKey)
+                }
             }
             Text(L.t("prefs.zoomLevel.hint"))
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(L.t("prefs.zoom.lockFrame.hint"))
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -312,12 +412,47 @@ struct PreferencesView: View {
         }
     }
 
+    private func secondsSliderRow(_ label: String, value: Binding<Double>, range: ClosedRange<Double>) -> some View {
+        HStack {
+            Text(label).frame(width: 160, alignment: .leading)
+            Slider(value: value, in: range)
+            Text(String(format: "%.1fs", value.wrappedValue))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .frame(width: 44, alignment: .trailing)
+        }
+    }
+
+    private func percentSliderRow(_ label: String, value: Binding<CGFloat>, range: ClosedRange<CGFloat>) -> some View {
+        HStack {
+            Text(label).frame(width: 160, alignment: .leading)
+            Slider(value: value, in: range)
+            Text(String(format: "%.0f%%", value.wrappedValue * 100))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .frame(width: 44, alignment: .trailing)
+        }
+    }
+
     private func colorBinding(_ keyPath: ReferenceWritableKeyPath<AppState, NSColor>) -> Binding<Color> {
         Binding(
             get: { Color(state[keyPath: keyPath]) },
             set: { state[keyPath: keyPath] = NSColor($0) }
         )
     }
+
+    /// Lets someone type an exact zoom factor (e.g. "7.5") next to the
+    /// slider, clamped to the same range — the slider alone can't land on
+    /// a precise value reliably, especially over a 1.1-12 span.
+    private static let zoomFactorFormatter: NumberFormatter = {
+        let f = NumberFormatter()
+        f.numberStyle = .decimal
+        f.minimumFractionDigits = 1
+        f.maximumFractionDigits = 1
+        f.minimum = NSNumber(value: Double(AppState.zoomFactorRange.lowerBound))
+        f.maximum = NSNumber(value: Double(AppState.zoomFactorRange.upperBound))
+        return f
+    }()
 }
 
 // MARK: - Permissions pane (its own view: needs local @State to refresh)
@@ -494,6 +629,52 @@ private struct ShortcutRecorderButton: View {
     }
 }
 
+/// Same recording UX as ShortcutRecorderButton above, generalized over a
+/// plain `Binding<AppState.KeyCombo>` for the single-shortcut cases (e.g.
+/// the magnifier lock key) that aren't keyed by a dictionary — kept as a
+/// separate small view rather than refactoring ShortcutRecorderButton
+/// itself, so the already-working draw-tool recorder stays untouched.
+private struct KeyComboRecorderButton: View {
+    let combo: Binding<AppState.KeyCombo>
+    @ObservedObject private var state = AppState.shared
+    @State private var isRecording = false
+    @State private var monitor: Any?
+
+    var body: some View {
+        Button(action: toggleRecording) {
+            Text(isRecording ? L.t("shortcut.pressKey") : combo.wrappedValue.label)
+                .frame(minWidth: 96)
+                .foregroundStyle(isRecording ? Color.accentColor : .primary)
+        }
+        .buttonStyle(.bordered)
+        .help(L.t("shortcut.click.to.record"))
+        .onDisappear { stopRecording() }
+    }
+
+    private func toggleRecording() {
+        if isRecording { stopRecording() } else { startRecording() }
+    }
+
+    private func startRecording() {
+        isRecording = true
+        state.isRecordingShortcut = true
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.keyCode != 0x35 { // Escape cancels without saving
+                combo.wrappedValue = AppState.KeyCombo.from(event)
+            }
+            stopRecording()
+            return nil
+        }
+    }
+
+    private func stopRecording() {
+        isRecording = false
+        state.isRecordingShortcut = false
+        if let m = monitor { NSEvent.removeMonitor(m) }
+        monitor = nil
+    }
+}
+
 // MARK: - License
 
 private struct LicensePane: View {
@@ -627,6 +808,12 @@ private struct LicensePane: View {
             if let promo = pricing.activePromo {
                 Text("🔥 \(promo.label): \(formattedPrice(promo.price)) (în loc de \(formattedPrice(pricing.basePrice))) — donație unică, fără abonament.")
                     .font(.callout).foregroundStyle(.orange)
+                // showCountdown (pricing.json) era decodat dar niciodată
+                // afișat — găsit la audit (Secțiunea 2, curățare cod).
+                if promo.showCountdown {
+                    Text("⏳ Oferta se încheie în \(promo.countdownText).")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             } else {
                 Text("\(formattedPrice(pricing.effectivePrice)) — donație unică, fără abonament, pentru susținerea dezvoltării.")
                     .font(.callout).foregroundStyle(.secondary)
@@ -655,6 +842,8 @@ private struct HelpPane: View {
             helpSection(icon: "circle.dashed", titleKey: "help.halo.title", bodyKey: "help.halo.body")
             helpSection(icon: "flashlight.on.fill", titleKey: "help.spotlight.title", bodyKey: "help.spotlight.body")
             helpSection(icon: "pencil.tip", titleKey: "help.draw.title", bodyKey: "help.draw.body")
+            helpSection(icon: "hand.point.up.left", titleKey: "help.clicks.title", bodyKey: "help.clicks.body")
+            helpSection(icon: "command", titleKey: "help.keystrokes.title", bodyKey: "help.keystrokes.body")
             helpSection(icon: "plus.magnifyingglass", titleKey: "help.zoom.title", bodyKey: "help.zoom.body")
             helpSection(icon: "keyboard", titleKey: "help.shortcuts.title", bodyKey: "help.shortcuts.body")
             helpSection(icon: "lock.shield", titleKey: "help.permissions.title", bodyKey: "help.permissions.body")

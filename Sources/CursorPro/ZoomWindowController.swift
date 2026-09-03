@@ -30,6 +30,12 @@ final class ZoomWindowController: NSObject {
     private let state = AppState.shared
     private var window: NSWindow?
     private var imageView: NSImageView?
+    private var colorLabel: NSTextField?
+    /// Refreshed on the main thread (showWindow/reposition) whenever the
+    /// loupe window is created or moved — read from the background
+    /// frame-output thread for the crisp-scaling render path, same
+    /// deliberate low-risk trade already used for radius/scale below.
+    private var cachedBackingScale: CGFloat = 2
     private var pollTimer: Timer?
     private var wasActive = false
 
@@ -107,8 +113,12 @@ final class ZoomWindowController: NSObject {
                 startStreamIfNeeded()
             }
             wasActive = true
-            reposition()
-            recenterStreamIfNeeded()
+            colorLabel?.isHidden = !state.magnifierColorPickerEnabled
+            updateLockVisual()
+            if !state.isMagnifierLocked {
+                reposition()
+                recenterStreamIfNeeded()
+            }
         } else if wasActive {
             DebugLog.log("tick: deactivating zoom")
             wasActive = false
@@ -151,11 +161,32 @@ final class ZoomWindowController: NSObject {
             reticle.autoresizingMask = [.width, .height]
             container.addSubview(reticle)
 
+            // Pixel color readout (HEX/RGB/Display P3) — sits low inside
+            // the circular mask so it never gets clipped by the corner
+            // radius; hidden unless the user turns the feature on.
+            let label = NSTextField(labelWithString: "")
+            label.alignment = .center
+            label.font = .systemFont(ofSize: 10, weight: .semibold)
+            label.textColor = .white
+            label.maximumNumberOfLines = 2
+            label.lineBreakMode = .byClipping
+            label.frame = NSRect(x: 20, y: 14, width: size.width - 40, height: 28)
+            label.autoresizingMask = [.width]
+            let textShadow = NSShadow()
+            textShadow.shadowColor = .black
+            textShadow.shadowBlurRadius = 3
+            textShadow.shadowOffset = .zero
+            label.shadow = textShadow
+            label.isHidden = !state.magnifierColorPickerEnabled
+            container.addSubview(label)
+            self.colorLabel = label
+
             w.contentView = container
             self.window = w
             self.imageView = iv
         }
         window?.orderFrontRegardless()
+        cachedBackingScale = window?.backingScaleFactor ?? cachedBackingScale
     }
 
     private func reposition() {
@@ -167,6 +198,18 @@ final class ZoomWindowController: NSObject {
         origin.x = max(screen.frame.minX, min(origin.x, screen.frame.maxX - size.width))
         origin.y = max(screen.frame.minY, min(origin.y, screen.frame.maxY - size.height))
         w.setFrameOrigin(origin)
+        // A cross-screen move can land on a display with a different
+        // backing scale (e.g. Retina laptop -> external non-Retina).
+        cachedBackingScale = w.backingScaleFactor
+    }
+
+    /// Orange ring while the frame is locked (vs. the normal white
+    /// border) — the only visual cue that the loupe has stopped
+    /// following the cursor, since its position genuinely doesn't move.
+    private func updateLockVisual() {
+        guard let container = window?.contentView else { return }
+        let color: NSColor = state.isMagnifierLocked ? .systemOrange : NSColor.white.withAlphaComponent(0.85)
+        container.layer?.borderColor = color.cgColor
     }
 
     // MARK: - Stream lifecycle
@@ -218,13 +261,18 @@ final class ZoomWindowController: NSObject {
         scaleY = sy
         stream = newStream
 
-        Task { [weak self] in
+        // @MainActor, same convention as refreshDisplaysIfNeeded() below —
+        // avoids a nested `await MainActor.run { self?.x = ... }` closure,
+        // which the Swift 6 concurrency checker flags (capturing a weak
+        // `self` a second time, across a second closure boundary) even
+        // though it was already safe here.
+        Task { @MainActor [weak self] in
             do {
                 try await newStream.startCapture()
                 DebugLog.log("beginStream: SUCCESS, streaming \(Int(rectGlobal.width))x\(Int(rectGlobal.height))pt region")
             } catch {
                 DebugLog.log("beginStream: startCapture failed: \(error)")
-                await MainActor.run { self?.stream = nil }
+                self?.stream = nil
             }
         }
     }
@@ -324,6 +372,37 @@ final class ZoomWindowController: NSObject {
             height: localPoints.height * scaleY
         )
     }
+
+    /// Reads the single pixel at the exact center of `image` — which, by
+    /// construction (see `cropRect` above), is always the pixel right
+    /// under the cursor — and updates the on-screen readout. Sampled in
+    /// Display P3 (the color space modern Mac displays actually capture
+    /// in) then converted to sRGB for the HEX/RGB numbers, so both are
+    /// accurate instead of treating raw P3 bytes as if they were sRGB.
+    private func samplePixelColor(from image: CIImage) {
+        let sampleRect = CGRect(x: image.extent.midX - 0.5, y: image.extent.midY - 0.5, width: 1, height: 1)
+        guard image.extent.contains(sampleRect) else { return }
+
+        var pixel = [UInt8](repeating: 0, count: 4)
+        ciContext.render(image, toBitmap: &pixel, rowBytes: 4, bounds: sampleRect,
+                          format: .RGBA8, colorSpace: CGColorSpace(name: CGColorSpace.displayP3))
+
+        let p3 = NSColor(displayP3Red: CGFloat(pixel[0]) / 255, green: CGFloat(pixel[1]) / 255,
+                          blue: CGFloat(pixel[2]) / 255, alpha: 1)
+        let srgb = p3.usingColorSpace(.sRGB) ?? p3
+        let r = Int((srgb.redComponent * 255).rounded())
+        let g = Int((srgb.greenComponent * 255).rounded())
+        let b = Int((srgb.blueComponent * 255).rounded())
+        let p3r = Int((p3.redComponent * 255).rounded())
+        let p3g = Int((p3.greenComponent * 255).rounded())
+        let p3b = Int((p3.blueComponent * 255).rounded())
+        let hex = String(format: "#%02X%02X%02X", r, g, b)
+        let text = "\(hex)\nRGB \(r),\(g),\(b) · P3 \(p3r),\(p3g),\(p3b)"
+
+        DispatchQueue.main.async { [weak self] in
+            self?.colorLabel?.stringValue = text
+        }
+    }
 }
 
 // MARK: - SCStreamOutput / SCStreamDelegate
@@ -406,16 +485,49 @@ extension ZoomWindowController: SCStreamOutput, SCStreamDelegate {
             return
         }
         let cropped = fullCI.cropped(to: cropRect)
+        if state.magnifierColorPickerEnabled {
+            samplePixelColor(from: cropped)
+        }
         guard let cgImage = ciContext.createCGImage(cropped, from: cropRect) else {
             if n <= 3 { DebugLog.log("didOutputSampleBuffer #\(n): createCGImage FAILED") }
             return
         }
 
-        let nsImage = NSImage(cgImage: cgImage, size: NSSize(width: radius * 2, height: radius * 2))
-        if n <= 3 { DebugLog.log("didOutputSampleBuffer #\(n): setting image, size=\(nsImage.size)") }
+        // Smooth (default): tag the image at its true point size and let
+        // NSImageView's own upscaling to the 360pt loupe do the interpolation,
+        // exactly as always. Crisp: pre-render ourselves at the loupe's
+        // ACTUAL pixel size with .none interpolation, tagged at the FULL
+        // 360pt size — NSImageView then draws it 1:1, so nothing softens
+        // our nearest-neighbor pixels afterwards.
+        let nsImage: NSImage
+        if state.magnifierSmoothScaling {
+            nsImage = NSImage(cgImage: cgImage, size: NSSize(width: radius * 2, height: radius * 2))
+        } else {
+            nsImage = Self.renderCrisp(cgImage: cgImage, diameterPoints: AppState.zoomWindowDiameter, scale: cachedBackingScale)
+                ?? NSImage(cgImage: cgImage, size: NSSize(width: radius * 2, height: radius * 2))
+        }
+        if n <= 3 { DebugLog.log("didOutputSampleBuffer #\(n): setting image, size=\(nsImage.size), smooth=\(state.magnifierSmoothScaling)") }
         DispatchQueue.main.async { [weak self] in
             self?.imageView?.image = nsImage
         }
+    }
+
+    /// Re-renders `cgImage` at the loupe's real pixel size with nearest-
+    /// neighbor interpolation — used only in crisp/pixel-inspection mode.
+    /// `static` + no captured state: safe to call from the background
+    /// frame-output thread.
+    private static func renderCrisp(cgImage: CGImage, diameterPoints: CGFloat, scale: CGFloat) -> NSImage? {
+        let targetPixels = max(2, Int((diameterPoints * scale).rounded()))
+        guard let ctx = CGContext(
+            data: nil, width: targetPixels, height: targetPixels,
+            bitsPerComponent: 8, bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else { return nil }
+        ctx.interpolationQuality = .none
+        ctx.draw(cgImage, in: CGRect(x: 0, y: 0, width: targetPixels, height: targetPixels))
+        guard let output = ctx.makeImage() else { return nil }
+        return NSImage(cgImage: output, size: NSSize(width: diameterPoints, height: diameterPoints))
     }
 
     func stream(_ stream: SCStream, didStopWithError error: Error) {
