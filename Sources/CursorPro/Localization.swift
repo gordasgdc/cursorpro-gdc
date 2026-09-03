@@ -59,7 +59,6 @@ enum L {
                                       .en: "Needed only for Zoom — to capture and magnify the area around your cursor.",
                                       .es: "Necesario solo para Zoom — para capturar y ampliar el área alrededor de tu cursor."],
 
-        "prefs.section.halo": [.ro: "Halo cursor", .en: "Mouse Halo", .es: "Halo del cursor"],
         "prefs.enabled": [.ro: "Activat", .en: "Enabled", .es: "Activado"],
         "prefs.color": [.ro: "Culoare", .en: "Color", .es: "Color"],
         "prefs.size": [.ro: "Mărime", .en: "Size", .es: "Tamaño"],
@@ -69,11 +68,9 @@ enum L {
         "prefs.style.filled": [.ro: "Plin", .en: "Filled", .es: "Relleno"],
         "prefs.style.crosshair": [.ro: "Cruce", .en: "Crosshair", .es: "Retícula"],
 
-        "prefs.section.spotlight": [.ro: "Spotlight", .en: "Spotlight", .es: "Foco"],
         "prefs.radius": [.ro: "Rază", .en: "Radius", .es: "Radio"],
         "prefs.dimAmount": [.ro: "Intensitate întunecare", .en: "Dim amount", .es: "Intensidad de oscurecido"],
 
-        "prefs.section.draw": [.ro: "Desen", .en: "Draw", .es: "Dibujo"],
         "prefs.clearAll": [.ro: "Șterge tot desenul", .en: "Clear all drawings", .es: "Borrar todo el dibujo"],
         "prefs.tool": [.ro: "Unealtă", .en: "Tool", .es: "Herramienta"],
         "draw.tool.freehand": [.ro: "Liber (mână liberă)", .en: "Freehand", .es: "Mano alzada"],
@@ -133,20 +130,16 @@ enum L {
                              .en: "• Pre-select the draw tool with its shortcut before you need it.\n• Pick modifier keys that don't clash with the shortcuts of the app you're presenting (e.g. DaVinci Resolve).\n• Use Clear (default Command) between examples to keep the screen tidy.\n• CursorPro GDC runs only from the menu bar — it never appears in the Dock and never steals focus from the app you're presenting.",
                              .es: "• Preselecciona la herramienta de dibujo con su tecla rápida antes de necesitarla.\n• Elige teclas modificadoras que no choquen con los atajos de la app que estás presentando (p. ej. DaVinci Resolve).\n• Usa Borrado (por defecto Command) entre ejemplos para mantener la pantalla limpia.\n• CursorPro GDC solo se ejecuta desde la barra de menú — nunca aparece en el Dock ni roba el foco de la app que estás presentando."],
 
-        "prefs.section.zoom": [.ro: "Zoom", .en: "Zoom", .es: "Zoom"],
-        "prefs.captureRadius": [.ro: "Rază captură", .en: "Capture radius", .es: "Radio de captura"],
         "prefs.zoomLevel": [.ro: "Nivel zoom", .en: "Zoom level", .es: "Nivel de zoom"],
         "prefs.zoomLevel.hint": [.ro: "Cât de mult mărește lupa (1.1x-12x, ajustare fină din 0.1 în 0.1). Ține ⌘ și derulează rotița/trackpad-ul cât lupa e activă, pentru ajustare live. Mișcă mouse-ul normal până ajungi exact unde vrei, apoi ține tasta de Zoom — abia atunci apare lupa, fixă pe punctul respectiv.",
                                   .en: "How strongly the loupe magnifies (1.1x-12x, in fine 0.1 steps). Hold ⌘ and scroll/swipe on the trackpad while the loupe is active to adjust it live. Move the mouse normally until you're exactly where you want, then hold the Zoom key — only then does the loupe appear, fixed on that spot.",
                                   .es: "Cuánto amplía la lupa (1.1x-12x, en pasos finos de 0.1). Mantén ⌘ y desplaza la rueda/trackpad mientras la lupa está activa, para ajustarla en vivo. Mueve el ratón con normalidad hasta llegar exactamente donde quieres, luego mantén la tecla de Zoom — solo entonces aparece la lupa, fija en ese punto."],
 
-        "prefs.section.keys": [.ro: "Taste (ține apăsat)", .en: "Shortcut keys (press-and-hold)", .es: "Teclas (mantener pulsado)"],
         "prefs.key.zoom": [.ro: "Zoom", .en: "Zoom", .es: "Zoom"],
         "prefs.key.draw": [.ro: "Desen", .en: "Draw", .es: "Dibujo"],
         "prefs.key.spotlight": [.ro: "Spotlight", .en: "Spotlight", .es: "Foco"],
         "prefs.key.clear": [.ro: "Șterge desenul", .en: "Clear drawings", .es: "Borrar dibujo"],
 
-        "prefs.section.general": [.ro: "General", .en: "General", .es: "General"],
         "prefs.startAtLogin": [.ro: "Pornește la login", .en: "Start at login", .es: "Iniciar al arrancar sesión"],
 
         "menu.permissions": [.ro: "Permisiuni", .en: "Permissions", .es: "Permisos"],
@@ -154,7 +147,6 @@ enum L {
         "perm.screenRecording": [.ro: "Înregistrare ecran", .en: "Screen Recording", .es: "Grabación de pantalla"],
         "perm.granted": [.ro: "acordată", .en: "granted", .es: "concedido"],
         "perm.missing": [.ro: "lipsă — click pentru a acorda", .en: "missing — click to grant", .es: "falta — clic para conceder"],
-        "prefs.section.permissions": [.ro: "Permisiuni sistem", .en: "System Permissions", .es: "Permisos del sistema"],
         "prefs.openSettings": [.ro: "Deschide Setări Sistem", .en: "Open System Settings", .es: "Abrir Ajustes del Sistema"],
         "prefs.refresh": [.ro: "Reverifică", .en: "Recheck", .es: "Volver a comprobar"],
 
@@ -182,7 +174,6 @@ enum L {
         "license.activate": [.ro: "Activează", .en: "Activate", .es: "Activar"],
         "license.deactivate": [.ro: "Dezactivează pe acest calculator", .en: "Deactivate on this Mac", .es: "Desactivar en este Mac"],
         "license.buy.title": [.ro: "Nu ai încă o licență?", .en: "Don't have a license yet?", .es: "¿Aún no tienes una licencia?"],
-        "license.buy.price": [.ro: "9 € — donație unică, fără abonament, pentru susținerea dezvoltării.", .en: "€9 — one-time donation, no subscription, to support development.", .es: "9 € — donación única, sin suscripción, para apoyar el desarrollo."],
         "license.buy.button": [.ro: "Scrie-mi pe WhatsApp pentru licență", .en: "Message me on WhatsApp for a license", .es: "Escríbeme por WhatsApp para la licencia"],
         "license.error.malformed": [.ro: "Codul nu e valid — verifică să-l fi copiat complet.", .en: "That code isn't valid — check you copied all of it.", .es: "Ese código no es válido — comprueba que lo copiaste completo."],
         "license.error.badSignature": [.ro: "Codul nu e valid.", .en: "That code isn't valid.", .es: "Ese código no es válido."],
@@ -198,10 +189,11 @@ enum L {
         "license.machineID.copy": [.ro: "Copiază", .en: "Copy", .es: "Copiar"],
         "license.machineID.copied": [.ro: "Copiat!", .en: "Copied!", .es: "¡Copiado!"],
 
+        "menu.helpGuide": [.ro: "Ghid complet (PDF)", .en: "Full Guide (PDF)", .es: "Guía completa (PDF)"],
+
         // MARK: - Updates
 
         "menu.checkForUpdates": [.ro: "Caută actualizări…", .en: "Check for Updates…", .es: "Buscar actualizaciones…"],
-        "update.checking": [.ro: "Se caută actualizări…", .en: "Checking for updates…", .es: "Buscando actualizaciones…"],
         "update.upToDate": [.ro: "Ai deja ultima versiune (%@).", .en: "You're already on the latest version (%@).", .es: "Ya tienes la última versión (%@)."],
         "update.available": [.ro: "E disponibilă versiunea %@ (ai %@).", .en: "Version %@ is available (you have %@).", .es: "La versión %@ está disponible (tienes %@)."],
         "update.download": [.ro: "Actualizează acum", .en: "Update now", .es: "Actualizar ahora"],
@@ -235,6 +227,8 @@ enum L {
                                      .en: "A colored ring, distinct for left click, right click and double click, appears right where you clicked — useful in tutorials, so viewers instantly see what kind of action just happened.",
                                      .es: "Un anillo de color, distinto para clic izquierdo, clic derecho y doble clic, aparece justo donde hiciste clic — útil en tutoriales, para que se vea al instante qué acción ocurrió."],
 
+        "prefs.keystroke.size": [.ro: "Mărime", .en: "Size", .es: "Tamaño"],
+        "prefs.keystroke.opacity": [.ro: "Opacitate", .en: "Opacity", .es: "Opacidad"],
         "prefs.keystroke.duration": [.ro: "Durată afișare", .en: "Display duration", .es: "Duración en pantalla"],
         "prefs.keystroke.hint": [.ro: "Afișează lângă cursor ultima combinație apăsată — dar DOAR dacă include ⌘, ⌃ sau ⌥. O literă simplă tastată (de ex. într-un câmp de parolă) nu apare niciodată — nu e un keylogger, doar un afișaj de scurtături pentru tutoriale.",
                                   .en: "Shows the last combo pressed near the cursor — but ONLY when it includes ⌘, ⌃ or ⌥. A plain letter typed anywhere (e.g. into a password field) never appears — this is a shortcut viewer for tutorials, not a keylogger.",

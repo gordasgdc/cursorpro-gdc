@@ -21,6 +21,20 @@ cp .build/release/CursorPro "$BUILD_OUT/Contents/MacOS/CursorPro"
 cp Info.plist "$BUILD_OUT/Contents/Info.plist"
 cp AppIcon.icns "$BUILD_OUT/Contents/Resources/AppIcon.icns"
 
+# BUG REAL (2026-09-04, gasit la audit — vezi acelasi fix deja aplicat in
+# gdc-plugin-manager-catalog-vendor/build_furnizor_app.sh): resursele SPM
+# (Package.swift `resources:`) se instaleaza intr-un .bundle separat,
+# langa executabil, in .build/release/ — `swift build` NU il copiaza
+# automat in Contents/Resources/ al .app-ului instalat. Fara acest pas,
+# Bundle.module.url(...) (HelpGuide.swift) ar fi intors mereu nil in
+# aplicatia instalata, desi mergea perfect la `swift run` local — exact
+# genul de discrepanta greu de prins fara sa testezi explicit .app-ul
+# din /Applications, nu doar build-ul din sursa.
+SPM_RESOURCE_BUNDLE=".build/release/CursorPro_CursorPro.bundle"
+if [ -d "$SPM_RESOURCE_BUNDLE" ]; then
+    cp -R "$SPM_RESOURCE_BUNDLE" "$BUILD_OUT/Contents/Resources/"
+fi
+
 # Sign with the local "CursorPro" self-signed certificate (created once
 # in Keychain Access, trusted for Code Signing) instead of ad-hoc (-).
 # TCC/Accessibility/Screen Recording grants bind to a signing identity —

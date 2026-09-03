@@ -5,6 +5,41 @@ Jurnal scurt, orientat spre utilizator, al schimbărilor livrate clienților
 din CLAUDE.md (acolo sunt și deciziile/motivele/pitfall-urile; aici doar
 rezumatul a "ce s-a schimbat", ușor de scanat rapid).
 
+## v1.2.2 (2026-09-04) — Curățare cod, ghid PDF integrat în Help, capturi reale
+
+**Curățare cod (Secțiunea 4)**:
+- Bug real găsit din capturi de ecran trimise de Cristi: în Preferințe →
+  Taste Afișate, etichetele „Mărime”/„Opacitate” apăreau ca text brut
+  (`prefs.keystroke.size`/`prefs.keystroke.opacity`) — chei de localizare
+  scrise în cod dar niciodată adăugate în tabel. Reparat.
+- Șterse 2 fișiere legacy neutilizate (`installer/Instructiuni.txt`,
+  `.html`) — conțineau informația FALSĂ deja corectată în 2026-08-26 în
+  `generate_pdf.py` ("aplicația nu e semnată" — de fapt e semnată și
+  notarizată de mult), rămasă neștearsă din greșeală.
+- Șterse 10 chei de localizare moarte (`prefs.section.*`, `prefs.
+  captureRadius`, `license.buy.price`, `update.checking`) — verificat cu
+  grep sistematic (fiecare `L.t(...)` din cod, diff față de tabel) că nu
+  mai erau referențiate nicăieri.
+- Build curat verificat din nou — 0 warnings.
+
+**Ghid PDF integrat în Help** (nou — până acum PDF-ul exista doar în
+instalator, inaccesibil din aplicația rulată): meniu nou „Ghid complet
+(PDF)” + buton în Preferințe → Ajutor, deschide
+`Instructiuni-CursorProGDC.pdf` cu `NSWorkspace` (`HelpGuide.swift`, port
+al tiparului deja folosit de GDC Plugin Manager). Bug de packaging găsit
+în același audit (identic cu cel deja reparat în Furnizor, alt repo):
+`build_app.sh` nu copia bundle-ul de resurse SPM în `.app`-ul instalat —
+funcționa la `swift run`, dar PDF-ul n-ar fi fost găsit niciodată în
+aplicația reală. Reparat.
+
+**Ghidul PDF actualizat**: secțiune nouă „4. Funcții avansate” (Efecte de
+Clic, Afișare Taste, Preseturi Focus, Lupă avansată, Semnal ecran),
+nivelul de zoom corectat la 1.1x–12x (era încă 2x–6x, învechit), plus 3
+capturi de ecran reale (Preferințe → General/Efecte Clic/Zoom) — trimise
+de Cristi pentru exact acest scop. Bug de font găsit la verificare:
+simbolurile ⌘/⌃/⌥ apăreau ca pătrățele goale (Arial nu are aceste glife)
+— înlocuite cu Command/Control/Option scrise, ca în restul ghidului.
+
 ## v1.2.1 (2026-09-04) — Afișare Taste: control de mărime și opacitate
 
 Preferințe → Taste Afișate capătă două slidere noi: **Mărime** (50%-200%,

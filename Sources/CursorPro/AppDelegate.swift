@@ -148,6 +148,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(.separator())
         menu.addItem(withTitle: L.t("menu.preferences"), action: #selector(openPreferences), keyEquivalent: ",").target = self
         menu.addItem(withTitle: L.t("sidebar.help"), action: #selector(openHelp), keyEquivalent: "?").target = self
+        menu.addItem(withTitle: L.t("menu.helpGuide"), action: #selector(openHelpGuide), keyEquivalent: "").target = self
         menu.addItem(withTitle: L.t("menu.checkForUpdates"), action: #selector(checkForUpdates), keyEquivalent: "").target = self
         menu.addItem(.separator())
         menu.addItem(withTitle: L.t("menu.quit"), action: #selector(quit), keyEquivalent: "q").target = self
@@ -259,6 +260,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             preferencesWindowController = PreferencesWindowController()
         }
         preferencesWindowController?.showHelp()
+    }
+
+    @objc private func openHelpGuide() {
+        HelpGuide.openPDF()
     }
 
     @objc private func quit() {
