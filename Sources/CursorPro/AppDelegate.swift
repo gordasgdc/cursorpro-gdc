@@ -99,6 +99,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         haloItem.target = self
         menu.addItem(haloItem)
 
+        let clickEffectsItem = NSMenuItem(title: L.t("menu.clickEffects"), action: #selector(toggleClickEffects), keyEquivalent: "")
+        clickEffectsItem.state = AppState.shared.clickEffectsEnabled ? .on : .off
+        clickEffectsItem.target = self
+        menu.addItem(clickEffectsItem)
+
+        let keystrokeItem = NSMenuItem(title: L.t("menu.keystrokeOverlay"), action: #selector(toggleKeystrokeOverlay), keyEquivalent: "")
+        keystrokeItem.state = AppState.shared.keystrokeOverlayEnabled ? .on : .off
+        keystrokeItem.target = self
+        menu.addItem(keystrokeItem)
+
         let drawToolItem = NSMenuItem(title: L.t("menu.drawTool"), action: nil, keyEquivalent: "")
         let drawToolSubmenu = NSMenu()
         for tool in AppState.DrawTool.allCases {
@@ -113,6 +123,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         drawToolItem.submenu = drawToolSubmenu
         menu.addItem(drawToolItem)
+
+        let presetItem = NSMenuItem(title: L.t("menu.focusPreset"), action: nil, keyEquivalent: "")
+        let presetSubmenu = NSMenu()
+        for preset in AppState.FocusPreset.allCases {
+            let item = NSMenuItem(title: preset.displayName, action: #selector(applyFocusPreset(_:)), keyEquivalent: "")
+            item.representedObject = preset
+            item.target = self
+            presetSubmenu.addItem(item)
+        }
+        presetItem.submenu = presetSubmenu
+        menu.addItem(presetItem)
 
         menu.addItem(.separator())
 
@@ -202,6 +223,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func toggleHalo(_ sender: NSMenuItem) {
         AppState.shared.haloEnabled.toggle()
         sender.state = AppState.shared.haloEnabled ? .on : .off
+    }
+
+    @objc private func toggleClickEffects(_ sender: NSMenuItem) {
+        AppState.shared.clickEffectsEnabled.toggle()
+        sender.state = AppState.shared.clickEffectsEnabled ? .on : .off
+    }
+
+    @objc private func toggleKeystrokeOverlay(_ sender: NSMenuItem) {
+        AppState.shared.keystrokeOverlayEnabled.toggle()
+        sender.state = AppState.shared.keystrokeOverlayEnabled ? .on : .off
+    }
+
+    @objc private func applyFocusPreset(_ sender: NSMenuItem) {
+        guard let preset = sender.representedObject as? AppState.FocusPreset else { return }
+        AppState.shared.apply(preset: preset)
+        rebuildMenu()
     }
 
     @objc private func selectDrawTool(_ sender: NSMenuItem) {

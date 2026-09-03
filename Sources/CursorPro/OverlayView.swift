@@ -48,10 +48,13 @@ final class OverlayView: NSView {
         }
 
         drawStrokes(ctx: ctx)
+        drawClickEffects(ctx: ctx)
 
         if state.haloEnabled && LicenseManager.shared.isUnlocked {
             drawHalo(ctx: ctx, at: cursor)
         }
+
+        drawKeystrokeBadge(ctx: ctx, at: cursor)
     }
 
     // MARK: - Halo
@@ -214,5 +217,78 @@ final class OverlayView: NSView {
         let rect = CGRect(x: min(start.x, end.x), y: min(start.y, end.y),
                            width: abs(end.x - start.x), height: abs(end.y - start.y))
         ctx.stroke(rect)
+    }
+
+    // MARK: - Click Effects (ripples)
+
+    private func pruneClickEffects() {
+        let now = ProcessInfo.processInfo.systemUptime
+        state.clickEffects.removeAll { now - $0.time > state.clickEffectDuration }
+    }
+
+    /// Expanding, fading ring at the click point. `.screenFound` (the
+    /// multi-display ping) reuses the exact same mechanism with a
+    /// bigger/slower ring — see AppState.ClickKind.
+    private func drawClickEffects(ctx: CGContext) {
+        pruneClickEffects()
+        guard LicenseManager.shared.isUnlocked, !state.clickEffects.isEmpty else { return }
+
+        let now = ProcessInfo.processInfo.systemUptime
+        for effect in state.clickEffects {
+            let elapsed = now - effect.time
+            guard elapsed >= 0 else { continue }
+            let progress = min(1, CGFloat(elapsed / state.clickEffectDuration))
+            let point = localPoint(fromGlobal: effect.point)
+            let isPing = effect.kind == .screenFound
+            let startRadius: CGFloat = isPing ? 14 : 6
+            let endRadius: CGFloat = isPing ? 70 : 36
+            let radius = startRadius + (endRadius - startRadius) * progress
+            let alpha = 1 - progress
+
+            ctx.setStrokeColor(state.color(for: effect.kind).withAlphaComponent(alpha).cgColor)
+            ctx.setLineWidth(isPing ? 3 : 2.5)
+            ctx.strokeEllipse(in: CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2))
+        }
+    }
+
+    // MARK: - Keystroke Overlay
+
+    /// A small fading pill with the last shortcut pressed (e.g. "⌘C"),
+    /// offset up-right from the cursor. Text drawing here relies on
+    /// `NSGraphicsContext.current` already being this view's own context
+    /// (true for the whole duration of `draw(_:)`), so no flip handling
+    /// is needed — Cocoa's string-drawing APIs already account for it.
+    private func drawKeystrokeBadge(ctx: CGContext, at cursor: CGPoint) {
+        guard state.keystrokeOverlayEnabled, LicenseManager.shared.isUnlocked,
+              let combo = state.lastKeystroke else { return }
+        let elapsed = ProcessInfo.processInfo.systemUptime - state.lastKeystrokeTime
+        guard elapsed >= 0, elapsed <= state.keystrokeDisplayDuration else { return }
+        let progress = CGFloat(elapsed / state.keystrokeDisplayDuration)
+        // Fully readable for the first 70% of the duration, then fade out.
+        // The user's own opacity preference multiplies this, rather than
+        // replacing it — a badge set to 30% opacity still fades to 0,
+        // it just never gets brighter than 30% along the way.
+        let fadeAlpha = progress < 0.7 ? 1 : max(0, 1 - (progress - 0.7) / 0.3)
+        let alpha = fadeAlpha * state.keystrokeOpacity
+        let scale = state.keystrokeScale
+
+        let text = combo.label
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 15 * scale, weight: .semibold),
+            .foregroundColor: NSColor.white.withAlphaComponent(alpha)
+        ]
+        let textSize = (text as NSString).size(withAttributes: attrs)
+        let padding: CGFloat = 10 * scale
+        let badgeSize = CGSize(width: textSize.width + padding * 2, height: textSize.height + padding)
+        let badgeRect = CGRect(origin: CGPoint(x: cursor.x + 22, y: cursor.y + 22), size: badgeSize)
+
+        ctx.setFillColor(NSColor.black.withAlphaComponent(0.65 * alpha).cgColor)
+        ctx.addPath(CGPath(roundedRect: badgeRect, cornerWidth: 8 * scale, cornerHeight: 8 * scale, transform: nil))
+        ctx.fillPath()
+
+        (text as NSString).draw(
+            at: CGPoint(x: badgeRect.minX + padding, y: badgeRect.minY + padding / 2),
+            withAttributes: attrs
+        )
     }
 }

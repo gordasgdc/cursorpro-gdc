@@ -9,7 +9,7 @@
   }
 </script>
 <title>CursorPro GDC</title>
-<meta name="description" content="CursorPro GDC — Halo, Spotlight, Desen și Zoom live pentru prezentări și cursuri pe Mac. Trial gratuit de 3 zile.">
+<meta name="description" content="CursorPro GDC — Halo, Spotlight, Desen și Zoom live pentru prezentări și cursuri, pe Mac și Windows. Trial gratuit de 3 zile.">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -78,7 +78,14 @@
   }
   h1 .accent{ background:linear-gradient(135deg,var(--accent),var(--violet-2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
   .hero p.lead{ font-size:16.5px; color:var(--muted); max-width:48ch; margin-bottom:30px; }
-  .hero-actions{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:26px; }
+  .hero-actions{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:26px; align-items:center; }
+  .os-downloads{ display:flex; gap:12px; flex-wrap:wrap; }
+  .os-btn-soon{ position:relative; opacity:.8; }
+  .os-btn-soon:hover{ opacity:1; border-color:var(--violet-2); }
+  .soon-badge{
+    font-family:var(--mono); font-size:9.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    background:var(--violet); color:#fff; padding:2px 6px; border-radius:5px; margin-left:2px;
+  }
   .btn{
     font-family:var(--mono); font-size:13.5px; font-weight:600; padding:14px 24px; border-radius:9px;
     text-decoration:none; display:inline-flex; align-items:center; gap:8px; transition:all .18s ease; cursor:pointer; border:1px solid transparent;
@@ -192,11 +199,14 @@
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
-      <div class="eyebrow">macOS · Apple Silicon</div>
+      <div class="eyebrow">macOS · Windows</div>
       <h1>Arată exact ce vrei<br>să vadă <span class="accent">studenții tăi</span>.</h1>
-      <p class="lead">Halo pe cursor, spotlight care întunecă restul ecranului, desen live peste orice aplicație și o lupă care mărește exact zona de care ai nevoie — toate dintr-o singură aplicație ușoară, nativă pentru Mac.</p>
+      <p class="lead">Halo pe cursor, spotlight care întunecă restul ecranului, desen live peste orice aplicație și o lupă care mărește exact zona de care ai nevoie — toate dintr-o singură aplicație ușoară, nativă pe Mac și Windows.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="https://github.com/gordasgdc/cursorpro-gdc/releases/latest/download/CursorProGDC-Mac.zip">⬇ Descarcă gratuit</a>
+        <div class="os-downloads" id="os-downloads">
+          <a class="btn btn-primary os-btn" id="dl-mac" href="https://github.com/gordasgdc/cursorpro-gdc/releases/latest/download/CursorProGDC-Mac.zip">⬇ Descarcă pentru Mac</a>
+          <a class="btn btn-ghost os-btn os-btn-soon" id="dl-win" href="https://github.com/gordasgdc/cursorpro-gdc-win" target="_blank" rel="noopener">⬇ Descarcă pentru Windows<span class="soon-badge">în curând</span></a>
+        </div>
         <a class="btn btn-ghost" href="#how">Vezi cum funcționează</a>
         <a class="btn btn-ghost" href="https://github.com/gordasgdc/cursorpro-gdc/releases/latest/download/Instructiuni-CursorProGDC.pdf">📄 Instrucțiuni (PDF)</a>
       </div>
@@ -257,6 +267,7 @@
     <div class="section-head reveal">
       <div class="section-tag">Instalare</div>
       <h2>Gata de folosit în două minute</h2>
+      <p id="win-guide-note" style="display:none;margin-top:8px;color:var(--muted);font-size:13.5px;">Pașii de mai jos sunt pentru macOS — ghidul pentru Windows apare aici odată cu lansarea clientului nativ.</p>
     </div>
     <div class="steps">
       <div class="step reveal">
@@ -321,6 +332,25 @@
   const waText = encodeURIComponent('Salut! Vreau să cumpăr o licență CursorPro GDC.');
   const waBtn = document.getElementById('whatsapp-buy-btn');
   if (waBtn) waBtn.href = `https://wa.me/${waNumber}?text=${waText}`;
+
+  // Detectie OS (User-Agent) — evidentiaza butonul de descarcare potrivit
+  // vizitatorului. Windows nu are inca un release public (client nativ in
+  // lucru, vezi CHANGELOG.md din cursorpro-gdc-win) — butonul lui ramane
+  // marcat "in curand" si trimite la repo, NICIODATA la un fisier care nu
+  // exista (Regula 9, CLAUDE.md: niciun link public catre un download
+  // presupus, doar verificat).
+  const ua = navigator.userAgent || '';
+  const isWindows = /Windows/i.test(ua);
+  const dlMac = document.getElementById('dl-mac');
+  const dlWin = document.getElementById('dl-win');
+  const winNote = document.getElementById('win-guide-note');
+  if (isWindows && dlMac && dlWin) {
+    dlMac.classList.remove('btn-primary');
+    dlMac.classList.add('btn-ghost');
+    dlWin.classList.remove('btn-ghost');
+    dlWin.classList.add('btn-primary');
+    if (winNote) winNote.style.display = 'block';
+  }
 </script>
 
 </body>
