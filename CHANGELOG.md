@@ -5,6 +5,25 @@ Jurnal scurt, orientat spre utilizator, al schimbărilor livrate clienților
 din CLAUDE.md (acolo sunt și deciziile/motivele/pitfall-urile; aici doar
 rezumatul a "ce s-a schimbat", ușor de scanat rapid).
 
+## Release oficial (2026-09-04)
+
+**Mac — v1.2.2, live pe GitHub Releases**: `.pkg` semnat cu Developer ID
+și notarizat de Apple (`spctl` confirmă „Notarized Developer ID"),
+`CursorProGDC-Mac.zip` (pkg + dezinstalator + ghid PDF) și ghidul PDF
+separat, toate verificate HTTP 200 pe linkurile `releases/latest/
+download/...` de pe site.
+
+**Windows — v1.2.0, primul build public, marcat explicit Preview**: doar
+tray icon + Licență funcționează (vezi `cursorpro-gdc-win/CHANGELOG.md`
+pentru tot ce lipsește încă). Publicat DELIBERAT ca preview, nu ca
+lansare completă — Halo/Spotlight/Desen/Zoom nu există încă pe Windows,
+iar prezentarea lui ca "gata" ar fi înșelătoare. Site-ul (butonul
+"Descarcă pentru Windows") și pagina de release explică asta clar.
+
+**Site**: secțiune nouă „Interfață" cu 2 capturi reale din Preferințe
+(General — preseturi, Zoom — lupă avansată), plus link real către
+preview-ul Windows (înlocuiește „în curând" cu badge „preview").
+
 ## v1.2.2 (2026-09-04) — Curățare cod, ghid PDF integrat în Help, capturi reale
 
 **Curățare cod (Secțiunea 4)**:
