@@ -8,23 +8,93 @@ final class OverlayView: NSView {
     private let state = AppState.shared
     private var refreshTimer: Timer?
 
+    /// Ultima regiune ocupata de halo, in coordonate locale. Invalidarea
+    /// trebuie sa acopere ATAT pozitia veche (ca sa stearga urma), CAT si pe
+    /// cea noua — altfel raman dare pe ecran la miscarea cursorului.
+    private var lastHaloRect: NSRect = .zero
+    private var displayLink: CADisplayLink?
+
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = true
         layer?.backgroundColor = .clear
 
-        // Simple, robust redraw loop: repaint at ~60fps whenever any mode
-        // is active or the halo is on, so cursor tracking and drawing feel
-        // live. Idle (halo off, no mode held) costs nothing extra since we
-        // still only redraw on a timer tick, not per pixel.
-        refreshTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
-            self?.needsDisplay = true
-        }
+        // [2026-09-11] Inainte: un Timer fix la 1/60s care punea
+        // `needsDisplay = true` pe TOT view-ul — adica repictarea intregului
+        // ecran (pe un 4K, ~8.8 milioane de pixeli) de 60 de ori pe secunda,
+        // doar ca sa mute un inel de cativa zeci de pixeli. Cu halo/lupa la
+        // dimensiunile mari cerute acum, costul asta devine vizibil.
+        //
+        // Acum: CADisplayLink, sincronizat cu rata REALA a ecranului — 120Hz
+        // pe ProMotion (unde Timer-ul fix pierdea jumatate din cadre si se
+        // vedea ca micro-sacadare), 60Hz pe restul, si se opreste singur cand
+        // ecranul nu deseneaza. Disponibil nativ pe NSView de la macOS 14,
+        // care e deja minimul aplicatiei (LSMinimumSystemVersion 14.0).
+        let link = displayLink(target: self, selector: #selector(onDisplayTick))
+        link.add(to: .main, forMode: .common)
+        displayLink = link
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) not supported") }
 
-    deinit { refreshTimer?.invalidate() }
+    deinit {
+        refreshTimer?.invalidate()
+        displayLink?.invalidate()
+    }
+
+    /// Invalideaza DOAR ce s-a schimbat.
+    ///
+    /// Cand singurul element viu e halo-ul (cazul normal de utilizare zilnica,
+    /// cu aplicatia pornita permanent), se repicteaza o zona de cateva sute de
+    /// pixeli in loc de tot ecranul. Cand e activ un mod care chiar acopera
+    /// toata suprafata (spotlight-ul intuneca tot ecranul, desenul si efectele
+    /// de click pot fi oriunde), se cade inapoi pe invalidarea totala — corect
+    /// inainte de rapid.
+    @objc private func onDisplayTick() {
+        guard !needsFullRedraw else {
+            lastHaloRect = .zero
+            needsDisplay = true
+            return
+        }
+
+        let cursor = localPoint(fromGlobal: state.mouseLocation)
+        let extent = state.maxHaloExtent
+        let haloRect = NSRect(x: cursor.x - extent, y: cursor.y - extent,
+                              width: extent * 2, height: extent * 2)
+
+        // Uniunea vechi+nou: pozitia veche trebuie stearsa, cea noua desenata.
+        let dirty = lastHaloRect.isEmpty ? haloRect : haloRect.union(lastHaloRect)
+        lastHaloRect = haloRect
+
+        // Peste un anumit prag, invalidarea partiala nu mai aduce nimic —
+        // compunerea a doua regiuni mari costa cat una singura pe tot ecranul.
+        if dirty.width * dirty.height > bounds.width * bounds.height * 0.5 {
+            needsDisplay = true
+        } else {
+            setNeedsDisplay(dirty.insetBy(dx: -2, dy: -2))
+        }
+    }
+
+    /// Modurile care pot desena oriunde pe ecran, deci cer repictare totala.
+    private var needsFullRedraw: Bool {
+        // Conditiile sunt copiate EXACT din garzile fiecarei functii de
+        // desenare (drawStrokes / drawClickEffects / drawKeystrokeBadge) —
+        // verificate direct in cod, nu presupuse. Daca vreuna dintre ele s-ar
+        // desincroniza, un element ar putea fi desenat in afara regiunii
+        // invalidate si ar lasa urme pe ecran.
+        if state.isSpotlightActive || state.isDrawActive { return true }
+        if !state.drawItems.isEmpty { return true }
+        if state.currentFreehand.count > 1 { return true }
+        if state.shapeStart != nil && state.shapeCurrent != nil { return true }
+        if !state.clickEffects.isEmpty { return true }
+        // Badge-ul de taste se deseneaza langa cursor, dar are propria lui
+        // geometrie (pila de text) pe care regiunea halo-ului n-o acopera.
+        if state.keystrokeOverlayEnabled, state.lastKeystroke != nil {
+            let elapsed = ProcessInfo.processInfo.systemUptime - state.lastKeystrokeTime
+            if elapsed >= 0, elapsed <= state.keystrokeDisplayDuration { return true }
+        }
+        return false
+    }
 
     /// This screen's frame in *global* coordinates (bottom-left origin,
     /// y-up) — used to convert AppState's global mouse point into a point
@@ -39,7 +109,9 @@ final class OverlayView: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         guard let ctx = NSGraphicsContext.current?.cgContext else { return }
-        ctx.clear(bounds)
+        // [2026-09-11] `dirtyRect`, nu `bounds`: cu invalidarea partiala de
+        // mai sus, stergerea trebuie sa acopere exact regiunea redesenata.
+        ctx.clear(dirtyRect)
 
         let cursor = localPoint(fromGlobal: state.mouseLocation)
 

@@ -923,3 +923,73 @@ lipsește, spune-o explicit, nu declara release-ul "gata".
    site trebuie să pointeze mereu la `releases/latest/download/...`
    (HTTP 200 verificat, nu presupus) și să menționeze numărul ultimei
    versiuni.
+
+## Etapa 2026-09-11 — Lupă/halo la dimensiuni mari + persistența preferințelor
+
+Cerut de Cristi: plaje mult mai generoase pentru Zoom și Halo, potrivite pentru
+medii profesionale (monitoare mari, prezentări), plus randare constantă la
+60/120fps la dimensiunile noi.
+
+**1. Dimensiunea lupei — de la constantă la reglaj (200–900px).**
+`AppState.zoomWindowDiameter` era `static let 360`. Nota din cod avertiza
+explicit împotriva a „două slidere care se bat pe același rezultat" — dar acea
+notă e despre raza SURSEI capturate, care rămâne și acum strict derivată
+(`zoomRadius = diametru / (2 × factor)`). Cele două reglaje înseamnă lucruri
+diferite și nu se suprapun: `zoomFactor` = *cât* mărește, `zoomWindowDiameter`
+= *cât de mare e lupa pe ecran*. Invariantul e neatins.
+
+**Capcană reală**: fereastra lupei se construiește O SINGURĂ DATĂ și e apoi
+reutilizată la fiecare activare — fără `applyDiameterIfChanged()`, o schimbare
+din Preferințe n-ar fi avut niciun efect până la repornire. Se redimensionează
+și masca circulară (`cornerRadius`) și eticheta de culoare, altfel lupa ar fi
+devenit un pătrat cu colțuri rotunjite mic.
+
+**2. Halo: 12–400px (era 12–80), grosime 1–20 (era 1–10).**
+
+**3. Scroll proporțional, nu aditiv.** Cu increment absolut, același gest
+însemna +0.5× atât la 1.2× (salt uriaș) cât și la 10× (imperceptibil). Zoomul
+e perceput logaritmic, deci incrementul se scalează cu factorul curent.
+
+**4. Invalidație dinamică — câștigul real de performanță.**
+Înainte: `Timer` fix la 1/60s care punea `needsDisplay = true` pe TOT view-ul,
+adică repictarea întregului ecran (pe 4K, ~8.8M pixeli) de 60 ori/secundă, doar
+ca să miște un inel. Acum: se invalidează doar uniunea (poziție veche ∪ poziție
+nouă) a halo-ului, cu cădere înapoi pe invalidare totală când e activ un mod
+care chiar desenează oriunde (spotlight, desen, efecte de click, badge de taste)
+— corect înainte de rapid. Peste 50% din suprafață, invalidarea parțială nu mai
+aduce nimic și se trece tot pe totală.
+
+**BUG EVITAT, găsit citind codul de desenare**: stilul `.crosshair` desenează
+patru liniuțe care ies în afara cercului cu `d × 0.4` FIECARE. Un calcul naiv
+`d/2 + lineWidth` le-ar fi tăiat la marginea regiunii invalidate. Formula
+`maxHaloExtent` le include explicit. Verificat pe **7644 de combinații** din
+toată plaja (12...400 × 1...20 × 2 stiluri): regiunea invalidată acoperă
+întotdeauna ce se desenează, cu marjă minimă de 4.5px pentru anti-aliasing.
+
+`ctx.clear(bounds)` → `ctx.clear(dirtyRect)`: cu invalidare parțială, ștergerea
+trebuie limitată la regiunea redesenată.
+
+**5. `CADisplayLink` în loc de `Timer`.** Timer-ul fix la 60Hz pierdea jumătate
+din cadre pe ProMotion (120Hz) și se vedea ca micro-sacadare. `displayLink` e
+disponibil nativ pe `NSView` de la macOS 14 — deja minimul aplicației.
+
+**6. GĂSIT LA AUDIT: preferințele nu se salvau DELOC.**
+`AppState` n-avea nicio persistență — culoare, dimensiuni, taste configurate,
+tot se pierdea la fiecare închidere. A devenit blocant odată cu plajele mari:
+o unealtă pe care o reglezi pentru monitorul tău și care uită totul la
+repornire nu e utilizabilă profesional — fix scenariul pentru care s-au cerut
+valorile mari. Adăugat `AppStatePersistence.swift`.
+
+**Capcană evitată deliberat**: NU se abonează la `objectWillChange`.
+`mouseLocation` e și el `@Published`, deci acel semnal se emite la fiecare
+mișcare de mouse (60-120/sec) — chiar și cu debounce, ar fi însemnat o scriere
+pe disc la fiecare 0.4s în permanență, degeaba, cât timp aplicația stă pornită
+în bara de meniu. Se abonează explicit doar la publisher-ele preferințelor
+(`Publishers.MergeMany`). Costul conștient: o preferință nouă trebuie adăugată
+și în acea listă. Valorile citite se ÎNCADREAZĂ în plaja curentă la load —
+altfel o plajă restrânsă într-o versiune viitoare ar lăsa slider-ul pornit în
+afara barei.
+
+Versiune: 1.2.2 → **1.3.0** (MINOR, Regula 14). Nu s-a atins varianta Windows
+(`CursorProWin`) — cerere explicit doar pentru macOS; paritatea rămâne TODO
+declarat, vezi `CHANGELOG.md`.

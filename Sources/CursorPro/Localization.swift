@@ -131,6 +131,13 @@ enum L {
                              .es: "• Preselecciona la herramienta de dibujo con su tecla rápida antes de necesitarla.\n• Elige teclas modificadoras que no choquen con los atajos de la app que estás presentando (p. ej. DaVinci Resolve).\n• Usa Borrado (por defecto Command) entre ejemplos para mantener la pantalla limpia.\n• CursorPro GDC solo se ejecuta desde la barra de menú — nunca aparece en el Dock ni roba el foco de la app que estás presentando."],
 
         "prefs.zoomLevel": [.ro: "Nivel zoom", .en: "Zoom level", .es: "Nivel de zoom"],
+        // [2026-09-11] Dimensiunea lupei, reglabila (era fixa la 360px).
+        "prefs.zoomSize": [.ro: "Dimensiune lupă", .en: "Loupe size", .es: "Tamaño de lupa"],
+        "prefs.zoomSize.hint": [
+            .ro: "Cât de mare e lupa pe ecran. Nivelul de zoom rămâne separat: o lupă mai mare arată o porțiune mai mare, mărită la fel.",
+            .en: "How big the loupe is on screen. Zoom level stays separate: a bigger loupe shows a larger area at the same magnification.",
+            .es: "Qué tan grande es la lupa en pantalla. El nivel de zoom es independiente: una lupa mayor muestra un área más grande con el mismo aumento."
+        ],
         "prefs.zoomLevel.hint": [.ro: "Cât de mult mărește lupa (1.1x-12x, ajustare fină din 0.1 în 0.1). Ține ⌘ și derulează rotița/trackpad-ul cât lupa e activă, pentru ajustare live. Mișcă mouse-ul normal până ajungi exact unde vrei, apoi ține tasta de Zoom — abia atunci apare lupa, fixă pe punctul respectiv.",
                                   .en: "How strongly the loupe magnifies (1.1x-12x, in fine 0.1 steps). Hold ⌘ and scroll/swipe on the trackpad while the loupe is active to adjust it live. Move the mouse normally until you're exactly where you want, then hold the Zoom key — only then does the loupe appear, fixed on that spot.",
                                   .es: "Cuánto amplía la lupa (1.1x-12x, en pasos finos de 0.1). Mantén ⌘ y desplaza la rueda/trackpad mientras la lupa está activa, para ajustarla en vivo. Mueve el ratón con normalidad hasta llegar exactamente donde quieres, luego mantén la tecla de Zoom — solo entonces aparece la lupa, fija en ese punto."],

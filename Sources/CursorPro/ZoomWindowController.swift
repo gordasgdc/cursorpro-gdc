@@ -129,7 +129,7 @@ final class ZoomWindowController: NSObject {
 
     private func showWindow() {
         if window == nil {
-            let d = AppState.zoomWindowDiameter
+            let d = state.zoomWindowDiameter
             let size = NSSize(width: d, height: d)
             let w = NSWindow(
                 contentRect: NSRect(origin: .zero, size: size),
@@ -185,8 +185,33 @@ final class ZoomWindowController: NSObject {
             self.window = w
             self.imageView = iv
         }
+        applyDiameterIfChanged()
         window?.orderFrontRegardless()
         cachedBackingScale = window?.backingScaleFactor ?? cachedBackingScale
+    }
+
+    /// [2026-09-11] Diametrul lupei e reglabil, dar fereastra se construieste
+    /// O SINGURA DATA si e apoi reutilizata la fiecare activare. Fara pasul
+    /// asta, o schimbare din Preferinte n-ar avea niciun efect vizibil pana
+    /// la repornirea aplicatiei — exact genul de bug tacut in care setarea
+    /// "pare ca nu face nimic".
+    ///
+    /// Se redimensioneaza si masca circulara (cornerRadius) si eticheta de
+    /// culoare, altfel lupa ar deveni un patrat cu colturi rotunjite mic.
+    private func applyDiameterIfChanged() {
+        guard let w = window else { return }
+        let d = state.zoomWindowDiameter
+        guard abs(w.frame.size.width - d) > 0.5 else { return }
+
+        let size = NSSize(width: d, height: d)
+        w.setContentSize(size)
+        if let container = w.contentView {
+            container.frame = NSRect(origin: .zero, size: size)
+            container.layer?.cornerRadius = d / 2
+            colorLabel?.frame = NSRect(x: 20, y: 14, width: max(40, d - 40), height: 28)
+        }
+        // Subviews-urile au autoresizingMask [.width, .height], deci se
+        // intind singure; doar containerul si masca cer pasul de mai sus.
     }
 
     private func reposition() {
@@ -503,7 +528,7 @@ extension ZoomWindowController: SCStreamOutput, SCStreamDelegate {
         if state.magnifierSmoothScaling {
             nsImage = NSImage(cgImage: cgImage, size: NSSize(width: radius * 2, height: radius * 2))
         } else {
-            nsImage = Self.renderCrisp(cgImage: cgImage, diameterPoints: AppState.zoomWindowDiameter, scale: cachedBackingScale)
+            nsImage = Self.renderCrisp(cgImage: cgImage, diameterPoints: state.zoomWindowDiameter, scale: cachedBackingScale)
                 ?? NSImage(cgImage: cgImage, size: NSSize(width: radius * 2, height: radius * 2))
         }
         if n <= 3 { DebugLog.log("didOutputSampleBuffer #\(n): setting image, size=\(nsImage.size), smooth=\(state.magnifierSmoothScaling)") }

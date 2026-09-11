@@ -201,10 +201,24 @@ final class InputMonitor {
     /// global/local MONITOR, same as every other input hook in this app,
     /// so it never blocks the scroll from also reaching whatever's under
     /// the cursor (see OverlayWindow's "never steal clicks" comment).
+    ///
+    /// [2026-09-11] Pas PROPORTIONAL, nu fix. Cu un increment absolut, acelasi
+    /// gest de scroll insemna +0.5x atat la 1.2x (un salt urias, aproape
+    /// jumatate din plaja utila de acolo) cat si la 10x (o schimbare abia
+    /// perceptibila). Zoomul e perceput logaritmic, deci incrementul se
+    /// scaleaza cu factorul curent: la orice nivel, aceeasi miscare de deget
+    /// produce aceeasi schimbare RELATIVA — tranzitia se simte uniforma pe
+    /// toata plaja, in loc de smucita jos si moarta sus.
     private func adjustZoomFactor(with event: NSEvent) {
-        let sensitivity: CGFloat = event.hasPreciseScrollingDeltas ? 0.01 : 0.15
         let range = AppState.zoomFactorRange
-        let proposed = state.zoomFactor + event.scrollingDeltaY * sensitivity
+        // Trackpad-ul raporteaza delte fine; roata de mouse, pasi grosi de
+        // "linie" — fiecare isi pastreaza propria constanta, ca ambele sa
+        // ajunga la aceeasi viteza perceputa.
+        let sensitivity: CGFloat = event.hasPreciseScrollingDeltas ? 0.004 : 0.06
+        let current = state.zoomFactor
+        let proposed = current * (1 + event.scrollingDeltaY * sensitivity)
+        // Clamp DUPA inmultire: la limita de jos, factorul multiplicativ nu
+        // poate cobori sub lowerBound oricat s-ar derula.
         state.zoomFactor = min(range.upperBound, max(range.lowerBound, proposed))
     }
 

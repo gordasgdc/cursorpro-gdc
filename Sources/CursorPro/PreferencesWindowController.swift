@@ -234,9 +234,9 @@ struct PreferencesView: View {
                     .frame(width: 200)
                 }
                 Divider()
-                sliderRow(L.t("prefs.size"), value: $state.haloDiameter, range: 12...80)
+                sliderRow(L.t("prefs.size"), value: $state.haloDiameter, range: AppState.haloDiameterRange, step: 1)
                 Divider()
-                sliderRow(L.t("prefs.lineThickness"), value: $state.haloLineWidth, range: 1...10)
+                sliderRow(L.t("prefs.lineThickness"), value: $state.haloLineWidth, range: AppState.haloLineWidthRange, step: 0.5)
             }
         }
     }
@@ -295,7 +295,10 @@ struct PreferencesView: View {
             card {
                 labeledRow(L.t("prefs.zoomLevel")) {
                     HStack(spacing: 10) {
-                        Slider(value: $state.zoomFactor, in: AppState.zoomFactorRange, step: 0.1)
+                        // [2026-09-11] Pas 0.05 (era 0.1): la factori mici
+                        // diferenta dintre 1.15x si 1.20x chiar se vede, iar
+                        // pasul dublu o sarea complet.
+                        Slider(value: $state.zoomFactor, in: AppState.zoomFactorRange, step: 0.05)
                         TextField("", value: $state.zoomFactor, formatter: Self.zoomFactorFormatter)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 44)
@@ -303,6 +306,21 @@ struct PreferencesView: View {
                     }
                     .frame(width: 320)
                 }
+                // [2026-09-11] Dimensiunea lupei, pana acum fixa la 360px.
+                labeledRow(L.t("prefs.zoomSize")) {
+                    HStack(spacing: 10) {
+                        Slider(value: $state.zoomWindowDiameter,
+                               in: AppState.zoomWindowDiameterRange, step: 10)
+                        Text(String(format: "%.0f px", state.zoomWindowDiameter))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                            .frame(width: 56, alignment: .trailing)
+                    }
+                    .frame(width: 320)
+                }
+                Text(L.t("prefs.zoomSize.hint"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 Divider()
                 labeledRow(L.t("prefs.zoom.scaling")) {
                     Picker("", selection: $state.magnifierSmoothScaling) {
@@ -401,14 +419,20 @@ struct PreferencesView: View {
         }
     }
 
-    private func sliderRow(_ label: String, value: Binding<CGFloat>, range: ClosedRange<CGFloat>) -> some View {
+    /// [2026-09-11] `step` explicit: fara el, SwiftUI trateaza slider-ul ca
+    /// pe unul continuu si, pe o plaja lunga (12...400), o miscare de un pixel
+    /// din mouse poate sari cativa pasi deodata. Cu step dat, fiecare pozitie
+    /// de pe bara e o valoare stabila, reproductibila.
+    /// Latimea campului de valoare a crescut (34 -> 48): la 400px valoarea
+    /// are trei cifre si se taia.
+    private func sliderRow(_ label: String, value: Binding<CGFloat>, range: ClosedRange<CGFloat>, step: CGFloat = 1) -> some View {
         HStack {
             Text(label).frame(width: 160, alignment: .leading)
-            Slider(value: value, in: range)
-            Text(String(format: "%.0f", value.wrappedValue))
+            Slider(value: value, in: range, step: step)
+            Text(step < 1 ? String(format: "%.1f", value.wrappedValue) : String(format: "%.0f", value.wrappedValue))
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
-                .frame(width: 34, alignment: .trailing)
+                .frame(width: 48, alignment: .trailing)
         }
     }
 

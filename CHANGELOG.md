@@ -1,5 +1,31 @@
 # Changelog — CursorPro GDC
 
+## v1.3.0 (2026-09-11) — Lupă și halo la dimensiuni profesionale
+
+### Added
+- **Dimensiune lupă reglabilă** (200–900 px) — până acum era fixă la 360 px.
+  E un reglaj separat de nivelul de zoom: o lupă mai mare arată o porțiune mai
+  mare din ecran, mărită la fel. Util pe monitoare mari și 4K.
+- **Preferințele se păstrează între porniri.** Până acum se pierdeau toate la
+  fiecare închidere a aplicației și reveneau la valorile din fabrică.
+
+### Changed
+- **Halo**: mărimea urcă de la maximum 80 px la **400 px**, iar grosimea
+  conturului de la 10 px la **20 px** — un inel de 80 px e practic invizibil
+  într-o prezentare pe ecran mare.
+- **Nivel zoom**: pas de 0,05× (era 0,1×), pentru reglaj fin la valori mici.
+- **Zoom din scroll**: viteza se adaptează la nivelul curent, deci aceeași
+  mișcare de deget dă aceeași schimbare relativă la orice nivel — înainte era
+  smucit la zoom mic și aproape inert la zoom mare.
+- **Slidere**: pas fix pe toată lungimea barei, fără salturi bruște, și câmp de
+  valoare mai lat (valorile de trei cifre se tăiau).
+
+### Performance
+- Overlay-ul repictează acum doar zona din jurul cursorului, nu tot ecranul, la
+  fiecare cadru — diferența contează mai ales la halo mare pe ecrane 4K.
+- Randare sincronizată cu rata reală a ecranului: **120 fps pe ProMotion**
+  (înainte era plafonat la 60, cu micro-sacadare vizibilă).
+
 Jurnal scurt, orientat spre utilizator, al schimbărilor livrate clienților
 — o intrare per versiune, cu dată. Complementar jurnalului tehnic detaliat
 din CLAUDE.md (acolo sunt și deciziile/motivele/pitfall-urile; aici doar

@@ -19,6 +19,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         Self.shared = self
         NSApp.setActivationPolicy(.accessory) // menu-bar only, no Dock icon, no app switcher entry
 
+        // [2026-09-11] Preferintele se incarca INAINTE de a construi overlay-ul
+        // sau meniul — altfel prima fereastra si bifele din meniu s-ar desena
+        // cu valorile din cod, apoi ar sari la cele salvate.
+        // Salvarea automata porneste imediat dupa incarcare, ca sa nu prinda
+        // (si sa rescrie cu implicite) starea de dinainte de load.
+        AppState.shared.loadPreferences()
+        AppState.shared.startPersistingPreferences()
+
         // Refuse to run as a second instance. Two copies polling
         // ScreenCaptureKit/global input monitors at once is exactly the
         // kind of thing that floods macOS's permission system and makes

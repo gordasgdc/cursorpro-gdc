@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 
 extension Notification.Name {
     static let cursorProLanguageChanged = Notification.Name("cursorProLanguageChanged")
@@ -10,6 +11,10 @@ extension Notification.Name {
 /// of truth.
 final class AppState: ObservableObject {
     static let shared = AppState()
+
+    /// Abonamentul de salvare automata a preferintelor — vezi
+    /// AppStatePersistence.swift.
+    var persistenceCancellable: AnyCancellable?
 
     // MARK: - Live pointer state (updated continuously by InputMonitor)
     @Published var mouseLocation: NSPoint = NSEvent.mouseLocation
@@ -25,6 +30,32 @@ final class AppState: ObservableObject {
     @Published var haloDiameter: CGFloat = 32
     @Published var haloLineWidth: CGFloat = 3
     @Published var haloStyle: HaloStyle = .ring
+
+    /// [2026-09-11] Plaja marita pentru prezentari pe ecrane mari/4K, unde
+    /// un inel de 80px e practic invizibil din sala. 400px acopera confortabil
+    /// o zona de interes intreaga; sub 12px cercul devine mai mic decat
+    /// cursorul insusi, deci inutil.
+    static let haloDiameterRange: ClosedRange<CGFloat> = 12...400
+    /// Un contur de 20px e gros cat sa ramana citibil intr-un stream
+    /// recomprimat, unde o linie de 2px dispare in artefacte.
+    static let haloLineWidthRange: ClosedRange<CGFloat> = 1...20
+
+    /// Cel mai mare halo pe care il poate desena aplicatia, oricare i-ar fi
+    /// stilul — folosit de OverlayView ca sa stie EXACT ce regiune sa
+    /// invalideze in jurul cursorului, fara sa repice toata suprafata
+    /// ecranului la fiecare cadru. Include grosimea liniei (conturul se
+    /// deseneaza centrat pe cerc, deci iese in afara cu jumatate din ea) si
+    /// o margine de siguranta pentru crosshair/umbre.
+    var maxHaloExtent: CGFloat {
+        // ATENTIE: stilul .crosshair deseneaza patru liniute care ies in
+        // afara cercului cu `d * 0.4` fiecare (vezi OverlayView.drawHalo) —
+        // un calcul naiv `d/2 + lineWidth` le-ar TAIA la marginile regiunii
+        // invalidate. Verificat direct in codul de desenare, nu presupus.
+        let ticks: CGFloat = haloStyle == .crosshair ? haloDiameter * 0.4 : 0
+        // +lineWidth: conturul se deseneaza CENTRAT pe cerc, deci iese in
+        // afara cu jumatate din grosime; restul e marja pentru anti-aliasing.
+        return haloDiameter / 2 + ticks + haloLineWidth + 4
+    }
 
     enum HaloStyle: String, CaseIterable, Identifiable {
         case ring       // outline circle
@@ -222,10 +253,25 @@ final class AppState: ObservableObject {
     /// inspection, past which the source region gets so small that any
     /// further gain is just blur, smooth or crisp.
     static let zoomFactorRange: ClosedRange<CGFloat> = 1.1...12
-    /// Fixed diameter of the loupe window, in points.
-    static let zoomWindowDiameter: CGFloat = 360
+
+    /// [2026-09-11] Diametrul lupei, in puncte — acum REGLABIL, nu fix.
+    ///
+    /// De ce asta NU contrazice nota de mai sus despre "doua slidere care se
+    /// bat pe acelasi rezultat": acolo e vorba de raza SURSEI capturate, care
+    /// ramane si acum strict derivata (`zoomRadius`, mai jos). Cele doua
+    /// reglaje inseamna lucruri diferite si nu se suprapun:
+    ///   - `zoomFactor`     = CAT de mult mareste (nivelul de zoom);
+    ///   - `zoomWindowDiameter` = CAT de mare e lupa pe ecran (fereastra).
+    /// Invariantul e neatins: sursa = diametru / (2 x factor). Cu o lupa mai
+    /// mare la acelasi factor, vezi o portiune mai mare din ecran marita la
+    /// fel — exact ce cere lucrul pe monitoare mari.
+    @Published var zoomWindowDiameter: CGFloat = 360
+    /// 200px e minimul la care lupa mai e utila; 900px acopera o portiune
+    /// generoasa chiar si pe un 4K, fara sa ascunda tot ecranul.
+    static let zoomWindowDiameterRange: ClosedRange<CGFloat> = 200...900
+
     /// Radius, in points, of the source region captured around the cursor — derived from zoomFactor.
-    var zoomRadius: CGFloat { Self.zoomWindowDiameter / (2 * zoomFactor) }
+    var zoomRadius: CGFloat { zoomWindowDiameter / (2 * zoomFactor) }
     /// Smooth (bilinear-ish, AppKit's default) vs. crisp nearest-neighbor
     /// upscaling of the captured pixels — see ZoomWindowController's
     /// explicit re-render path for the crisp case. Smooth is the right
