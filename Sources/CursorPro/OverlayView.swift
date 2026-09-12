@@ -14,6 +14,15 @@ final class OverlayView: NSView {
     private var lastHaloRect: NSRect = .zero
     private var displayLink: CADisplayLink?
 
+    /// [2026-09-12] Cadrul ANTERIOR a desenat un element care acopera tot
+    /// ecranul (masca de spotlight, desene, efecte)? Fara asta, trecerea de la
+    /// "acopera tot" la "doar halo" invalideaza doar dreptunghiul mic din jurul
+    /// cursorului: `ctx.clear(dirtyRect)` sterge acel dreptunghi din masca
+    /// ramasa pe ecran, iar dedesubt apare desktopul — exact patratelele care
+    /// se vedeau la miscarea mouse-ului, ca si cum ai sterge cu buretele.
+    /// Un cadru complet in plus dupa ultimul cadru "plin" sterge masca intreaga.
+    private var lastFrameWasFullScreen = false
+
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = true
@@ -51,7 +60,15 @@ final class OverlayView: NSView {
     /// de click pot fi oriunde), se cade inapoi pe invalidarea totala — corect
     /// inainte de rapid.
     @objc private func onDisplayTick() {
-        guard !needsFullRedraw else {
+        // Starea REALA a tastelor modificatoare, citita sincron — un eveniment
+        // pierdut nu mai poate lasa un mod blocat pornit (vezi
+        // InputMonitor.reconcileModifierState).
+        AppDelegate.shared?.reconcileInputState()
+
+        // `lastFrameWasFullScreen`: chiar daca ACUM nu mai e nimic pe tot
+        // ecranul, cadrul precedent a lasat ceva desenat acolo — trebuie sters
+        // integral, nu partial.
+        guard !needsFullRedraw && !lastFrameWasFullScreen else {
             lastHaloRect = .zero
             needsDisplay = true
             return
@@ -111,7 +128,13 @@ final class OverlayView: NSView {
         guard let ctx = NSGraphicsContext.current?.cgContext else { return }
         // [2026-09-11] `dirtyRect`, nu `bounds`: cu invalidarea partiala de
         // mai sus, stergerea trebuie sa acopere exact regiunea redesenata.
-        ctx.clear(dirtyRect)
+        // [2026-09-12] ...DAR doar cat timp pe ecran nu exista (si n-a existat
+        // in cadrul precedent) un element care acopera tot. In acel caz
+        // stergerea partiala taie o gaura in masca deja desenata. Aici
+        // `bounds` e obligatoriu, nu o optimizare ratata.
+        let fullScreenFrame = needsFullRedraw || lastFrameWasFullScreen
+        ctx.clear(fullScreenFrame ? bounds : dirtyRect)
+        lastFrameWasFullScreen = needsFullRedraw
 
         let cursor = localPoint(fromGlobal: state.mouseLocation)
 

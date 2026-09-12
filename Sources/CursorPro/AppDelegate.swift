@@ -45,10 +45,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         zoomWindowController = ZoomWindowController()
         buildStatusItem()
 
-        // Prompt for both permissions once, up front, rather than making
-        // the user hunt for the menu — CursorPro is largely useless
-        // without them.
-        PermissionsChecker.requestAccessibilityIfNeeded()
+        // [2026-09-12] Inainte: `requestAccessibilityIfNeeded()` la FIECARE
+        // lansare, neconditionat. Acum trecem prin evaluarea de stare, care
+        // face diferenta intre "prima rulare, cere permisiunea" si "permisiunea
+        // a fost acordata candva, dar sistemul n-o mai recunoaste" — al doilea
+        // caz nu se rezolva niciodata cerand din nou, vezi
+        // PermissionsChecker.evaluateOnLaunch().
+        handlePermissionsOnLaunch()
 
         NotificationCenter.default.addObserver(
             self, selector: #selector(screensChanged),
@@ -205,6 +208,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             granted: PermissionsChecker.isScreenRecordingGranted,
             action: #selector(openScreenRecordingSettings)
         ))
+
+        // Mereu la indemana, nu doar cand aplicatia detecteaza singura problema
+        // — daca sistemul arata bifa aprinsa dar aplicatia tot nu are acces,
+        // asta e singura actiune care repara.
+        submenu.addItem(.separator())
+        let repairItem = NSMenuItem(title: L.t("perm.repair.menu"),
+                                    action: #selector(repairPermissionsFromMenu),
+                                    keyEquivalent: "")
+        repairItem.target = self
+        submenu.addItem(repairItem)
     }
 
     private func statusItem(title: String, granted: Bool, action: Selector) -> NSMenuItem {
@@ -213,6 +226,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let item = NSMenuItem(title: "\(dot) \(title) — \(status)", action: action, keyEquivalent: "")
         item.target = self
         return item
+    }
+
+    // MARK: - Permisiuni la pornire
+
+    private func handlePermissionsOnLaunch() {
+        switch PermissionsChecker.evaluateOnLaunch() {
+        case .nothing:
+            break
+        case .requestFirstTime:
+            PermissionsChecker.requestAccessibilityIfNeeded()
+        case .repairStaleGrant:
+            showStaleGrantRepairAlert()
+        }
+    }
+
+    /// Cazul in care Setarile de sistem arata permisiunea ca fiind acordata,
+    /// dar sistemul nu o mai recunoaste — vezi explicatia completa din
+    /// `PermissionsChecker`. Cerand-o din nou nu se repara nimic; singurul
+    /// lucru care functioneaza e stergerea intrarii invechite.
+    @objc func repairPermissionsFromMenu() {
+        showStaleGrantRepairAlert()
+    }
+
+    private func showStaleGrantRepairAlert() {
+        let alert = NSAlert()
+        alert.messageText = L.t("perm.repair.title")
+        alert.informativeText = L.t("perm.repair.body")
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: L.t("perm.repair.fix"))
+        alert.addButton(withTitle: L.t("perm.repair.settings"))
+        alert.addButton(withTitle: L.t("perm.repair.later"))
+        NSApp.activate(ignoringOtherApps: true)
+
+        switch alert.runModal() {
+        case .alertFirstButtonReturn:
+            PermissionsChecker.resetStaleGrants()
+            // Dupa stergere, cererea reporneste de la zero si se leaga de
+            // semnatura curenta.
+            PermissionsChecker.requestAccessibilityIfNeeded()
+            PermissionsChecker.openAccessibilitySettings()
+        case .alertSecondButtonReturn:
+            PermissionsChecker.openAccessibilitySettings()
+        default:
+            break
+        }
+    }
+
+    /// Apelat la fiecare cadru din `OverlayView` — vezi
+    /// `InputMonitor.reconcileModifierState()`.
+    func reconcileInputState() {
+        inputMonitor.reconcileModifierState()
     }
 
     @objc private func openAccessibilitySettings() {

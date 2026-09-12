@@ -55,6 +55,77 @@ final class InputMonitor {
         localMonitors.removeAll()
     }
 
+    // MARK: - Starea tastelor modificatoare
+
+    /// [2026-09-12] Aplicarea starii tastelor modificatoare, extrasa din
+    /// `handle(.flagsChanged)` ca sa poata fi apelata SI de reconcilierea
+    /// periodica (vezi `reconcileModifierState()`).
+    ///
+    /// DE CE a fost nevoie: pana acum starea modurilor (Spotlight/Desen/Lupa)
+    /// depindea EXCLUSIV de primirea unui eveniment `.flagsChanged` prin
+    /// monitorul global `NSEvent`. Un singur eveniment pierdut — si se pierd
+    /// real: monitorul global nu livreaza nimic cat timp permisiunea de
+    /// Accesibilitate nu e efectiv activa, iar ridicarea tastei in timp ce
+    /// alta aplicatie preia focusul poate sa nu ajunga niciodata — lasa modul
+    /// blocat pornit la nesfarsit. Asa aparea spotlight-ul care "ramane
+    /// incontinuu" dupa ce tasta a fost deja eliberata.
+    func applyModifierFlags(_ flags: NSEvent.ModifierFlags) {
+        // Trial expired, no license activated: real features stay
+        // off no matter which key is held. The Preferences → License
+        // page still works so the user can enter a code any time.
+        let unlocked = LicenseManager.shared.isUnlocked
+
+        let wasDrawing = state.isDrawActive
+        let wasZooming = state.isZoomActive
+        state.isZoomActive = unlocked && flags.contains(state.zoomKey.flag)
+        state.isDrawActive = unlocked && flags.contains(state.drawKey.flag)
+        state.isSpotlightActive = unlocked && flags.contains(state.spotlightKey.flag)
+
+        if wasZooming && !state.isZoomActive {
+            // Never leave the loupe frozen for next time without the
+            // user explicitly asking again.
+            state.isMagnifierLocked = false
+        }
+
+        if wasDrawing && !state.isDrawActive {
+            // Draw key released: commit whatever was in progress.
+            if state.currentFreehand.count > 1 {
+                state.drawItems.append(.freehand(state.currentFreehand))
+            }
+            state.currentFreehand.removeAll()
+            if let start = state.shapeStart, let current = state.shapeCurrent {
+                commitShape(from: start, to: current)
+            }
+            state.shapeStart = nil
+            state.shapeCurrent = nil
+        }
+
+        if flags.contains(state.clearKey.flag) {
+            state.clearDrawings()
+        }
+    }
+
+    /// Sursa de adevar care NU depinde de livrarea evenimentelor:
+    /// `NSEvent.modifierFlags` e o citire sincrona a starii REALE a
+    /// tastaturii. Apelata la fiecare cadru din `OverlayView`, garanteaza ca
+    /// un mod nu poate ramane blocat pornit dupa ce tasta a fost eliberata,
+    /// oricate evenimente s-ar pierde pe drum.
+    func reconcileModifierState() {
+        let flags = NSEvent.modifierFlags
+        let unlocked = LicenseManager.shared.isUnlocked
+        let expectedZoom = unlocked && flags.contains(state.zoomKey.flag)
+        let expectedDraw = unlocked && flags.contains(state.drawKey.flag)
+        let expectedSpot = unlocked && flags.contains(state.spotlightKey.flag)
+        guard expectedZoom != state.isZoomActive
+            || expectedDraw != state.isDrawActive
+            || expectedSpot != state.isSpotlightActive else { return }
+        // `clearKey` nu se re-evalueaza aici: e o actiune declansata de apasare,
+        // nu o stare — reaplicarea ei periodic ar sterge desenele la nesfarsit
+        // cat timp tasta e tinuta. De aceea reconcilierea foloseste flag-urile
+        // fara bitul lui.
+        applyModifierFlags(flags.subtracting(state.clearKey.flag))
+    }
+
     private func handle(_ event: NSEvent) {
         switch event.type {
         case .mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged:
@@ -104,40 +175,7 @@ final class InputMonitor {
             addClickEffect(at: state.mouseLocation, kind: .right)
 
         case .flagsChanged:
-            let flags = event.modifierFlags
-            // Trial expired, no license activated: real features stay
-            // off no matter which key is held. The Preferences → License
-            // page still works so the user can enter a code any time.
-            let unlocked = LicenseManager.shared.isUnlocked
-
-            let wasDrawing = state.isDrawActive
-            let wasZooming = state.isZoomActive
-            state.isZoomActive = unlocked && flags.contains(state.zoomKey.flag)
-            state.isDrawActive = unlocked && flags.contains(state.drawKey.flag)
-            state.isSpotlightActive = unlocked && flags.contains(state.spotlightKey.flag)
-
-            if wasZooming && !state.isZoomActive {
-                // Never leave the loupe frozen for next time without the
-                // user explicitly asking again.
-                state.isMagnifierLocked = false
-            }
-
-            if wasDrawing && !state.isDrawActive {
-                // Draw key released: commit whatever was in progress.
-                if state.currentFreehand.count > 1 {
-                    state.drawItems.append(.freehand(state.currentFreehand))
-                }
-                state.currentFreehand.removeAll()
-                if let start = state.shapeStart, let current = state.shapeCurrent {
-                    commitShape(from: start, to: current)
-                }
-                state.shapeStart = nil
-                state.shapeCurrent = nil
-            }
-
-            if flags.contains(state.clearKey.flag) {
-                state.clearDrawings()
-            }
+            applyModifierFlags(event.modifierFlags)
 
         case .keyDown:
             guard !state.isRecordingShortcut else { break }

@@ -49,11 +49,42 @@ fi
 # vor trebui sa re-acorde manual Accessibility/Screen Recording dupa
 # PRIMA actualizare la versiunea semnata cu Developer ID. Mentioneaza
 # asta explicit in notele de release ale acelei versiuni.
+#
+# [2026-09-12] CAUZA REALA a permisiunilor "care nu se retin", gasita direct in
+# baza de date TCC a sistemului: macOS leaga permisiunea de o CERINTA DE
+# SEMNATURA, nu de calea aplicatiei. Intrarea salvata pe aceasta masina cerea
+# certificatul local auto-semnat "CursorPro"; build-ul instalat era semnat
+# Developer ID, deci nu o mai indeplinea — sistemul cerea permisiunea la
+# FIECARE pornire, desi in Setari bifa ramanea aprinsa.
+#
+# De aceea fallback-ul auto-semnat NU mai e implicit: daca exista un Developer
+# ID in breloc, se foloseste ALA, si identitatea ramane aceeasi intre build-ul
+# local si cel livrat. Fallback-ul ramane posibil, dar explicit si zgomotos.
 if [ -n "${APPLE_SIGN_IDENTITY_APP:-}" ]; then
     ./codesigning/sign-and-notarize.sh app "$BUILD_OUT"
 else
-    SIGN_IDENTITY="CursorPro"
-    codesign --force --deep --sign "$SIGN_IDENTITY" "$BUILD_OUT"
+    DEV_ID=$(security find-identity -v -p codesigning 2>/dev/null \
+             | grep -m1 "Developer ID Application" | sed -E 's/.*"(.*)"/\1/')
+    if [ -n "$DEV_ID" ]; then
+        echo "  Semnez cu identitatea reala din breloc: $DEV_ID"
+        echo "  (aceeasi ca la build-urile livrate — permisiunile acordate raman valabile)"
+        codesign --force --deep --sign "$DEV_ID" --options runtime "$BUILD_OUT"
+    elif [ "${CURSORPRO_ALLOW_SELFSIGNED:-}" = "1" ]; then
+        echo "  ATENTIE: semnez cu certificatul local auto-semnat \"CursorPro\"." >&2
+        echo "  Permisiunile acordate acestui build NU vor mai fi valabile pentru" >&2
+        echo "  un build semnat Developer ID, si invers — sistemul le va cere din" >&2
+        echo "  nou la fiecare pornire. Foloseste-l doar pentru teste izolate." >&2
+        codesign --force --deep --sign "CursorPro" "$BUILD_OUT"
+    else
+        echo "EROARE: niciun 'Developer ID Application' in breloc si nici" >&2
+        echo "APPLE_SIGN_IDENTITY_APP setat." >&2
+        echo "" >&2
+        echo "Semnarea cu certificatul local auto-semnat ar rupe permisiunile deja" >&2
+        echo "acordate (Accesibilitate / Inregistrare ecran) — de aceea nu se mai" >&2
+        echo "face automat. Daca chiar vrei asta pentru un test izolat:" >&2
+        echo "    CURSORPRO_ALLOW_SELFSIGNED=1 ./build_app.sh" >&2
+        exit 1
+    fi
 fi
 
 # Install straight to /Applications (the one macOS Privacy & Security

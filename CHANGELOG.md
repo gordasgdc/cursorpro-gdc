@@ -1,5 +1,27 @@
 # Changelog — CursorPro GDC
 
+## v1.3.1 (2026-09-12) — Permisiunile rămân acordate + spotlight fără urme
+
+### Fixed
+- **Permisiunile nu se mai pierd la fiecare pornire.** macOS nu leagă
+  permisiunea de aplicație, ci de semnătura ei: când aplicația era actualizată
+  cu o semnătură diferită, sistemul păstra o intrare veche care nu se mai
+  potrivea, cerea permisiunea din nou la fiecare pornire și, în același timp,
+  în Setări bifa rămânea aprinsă — de aceea singura soluție părea să fie
+  ștergerea și readăugarea manuală, de fiecare dată. Aplicația detectează acum
+  situația și o repară singură, iar noua acordare rămâne valabilă definitiv.
+- **Reparare manuală, oricând**: „Permisiuni → Repară permisiunile…", pentru
+  cazul în care Setările arată permisiunea acordată dar aplicația tot nu are
+  acces.
+- **Spotlight-ul nu mai rămâne blocat pe ecran** după ce tasta a fost
+  eliberată. Starea tastelor ținute apăsat se citea exclusiv din evenimente;
+  un singur eveniment pierdut lăsa modul pornit la nesfârșit. Acum starea reală
+  a tastaturii e verificată la fiecare cadru.
+- **Nu mai apar pătrățele transparente la mișcarea mouse-ului** în spotlight.
+  La trecerea de la un element care acoperă tot ecranul înapoi la halo, se
+  ștergea doar zona din jurul cursorului — restul măștii rămânea desenat, iar
+  fiecare ștergere parțială tăia o gaură dreptunghiulară prin ea.
+
 ## v1.3.0 (2026-09-11) — Lupă și halo la dimensiuni profesionale
 
 ### Added

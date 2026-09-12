@@ -1091,3 +1091,88 @@ afara barei.
 Versiune: 1.2.2 → **1.3.0** (MINOR, Regula 14). Nu s-a atins varianta Windows
 (`CursorProWin`) — cerere explicit doar pentru macOS; paritatea rămâne TODO
 declarat, vezi `CHANGELOG.md`.
+
+## Etapa 2026-09-12 (v1.3.1) — Permisiuni care nu se rețin + spotlight cu urme
+
+Două reclamații de la Cristi, cu **o cauză comună** plus un defect propriu de
+randare. Mac only, cerut explicit — Windows neatins.
+
+### 1. Permisiunile cerute la fiecare pornire — cauza REALĂ, găsită în TCC
+
+Verificat direct în baza de date TCC a sistemului, nu presupus:
+
+```
+sqlite3 "/Library/Application Support/com.apple.TCC/TCC.db" \
+  "select service,client,auth_value,hex(csreq) from access where client='com.gordasgdc.cursorpro';"
+```
+
+Rândurile existau, cu `auth_value = 2` (permis) — deci Setările de sistem
+arătau bifa aprinsă. Dar `csreq` (cerința de semnătură pe care macOS o
+salvează la acordare) conținea un **hash de certificat**,
+`997CF9CE02CED6DDEA46B132469A94512FD10FA5` — identic cu SHA-1 al
+certificatului local auto-semnat „CursorPro" din breloc
+(`security find-certificate -c CursorPro -Z`).
+
+Aplicația instalată era însă semnată **Developer ID** (`anchor apple generic`,
+OU `8AR6XP8MG7`) — deci NU satisfăcea cerința salvată. macOS o trata ca pe o
+aplicație necunoscută → cerea permisiunea la fiecare pornire, în timp ce
+rândul vechi rămânea vizibil ca „acordat". Reacordarea nu repara nimic; doar
+ștergerea rândului repara, ceea ce explică exact „de fiecare dată să mă apuc
+să scot, să șterg, să relansez permisiunile".
+
+**Sursa oscilației**: `build_app.sh` cădea TĂCUT pe
+`codesign --sign "CursorPro"` (auto-semnat) ori de câte ori
+`APPLE_SIGN_IDENTITY_APP` nu era exportat în shell. Build local → auto-semnat;
+instalare din release → Developer ID; și tot așa. Comentariul din script
+prezisese problema, dar o descria ca întâmplându-se „O SINGURĂ DATĂ" — în
+realitate se repetă la fiecare alternanță.
+
+**Reparat:**
+- `build_app.sh` caută acum singur identitatea `Developer ID Application` din
+  breloc și o folosește — aceeași identitate ca la build-urile livrate. Fără
+  ea și fără `APPLE_SIGN_IDENTITY_APP`, scriptul **eșuează explicit** în loc să
+  cadă pe auto-semnat; fallback-ul rămâne disponibil doar prin
+  `CURSORPRO_ALLOW_SELFSIGNED=1`, cu avertisment zgomotos.
+- `PermissionsChecker` capătă `signingIdentity` (din `SecCodeCopySigningInformation`),
+  `evaluateOnLaunch()` și `resetStaleGrants()` (`tccutil reset` pe
+  Accessibility/ScreenCapture/ListenEvent, fără parolă de admin — sunt
+  permisiunile propriei aplicații).
+- `AppDelegate` nu mai cheamă `requestAccessibilityIfNeeded()` neconditionat la
+  fiecare lansare. Distinge trei cazuri: totul OK / prima rulare / **intrare
+  invechită**, iar pentru al treilea arată o fereastră care explică situația și
+  repară cu un buton. Prag: a doua pornire consecutivă fără încredere (nu
+  prima, ca să nu sperie un user aflat la prima rulare).
+- Element de meniu permanent „Repară permisiunile…", pentru cazul în care
+  userul ajunge acolo singur.
+
+**Făcut pe mașina lui Cristi, în această sesiune**: `tccutil reset` pe ambele
+servicii — rândurile invechite au dispărut (`select ... where client=...`
+întoarce gol). Următoarea acordare se leagă de Developer ID și rămâne validă.
+
+### 2. Spotlight blocat pe ecran + pătrățele la mișcarea mouse-ului
+
+Două defecte distincte, care se compun:
+
+- **Modul rămânea pornit**: `isSpotlightActive`/`isDrawActive`/`isZoomActive`
+  se actualizau EXCLUSIV din `.flagsChanged`, primit prin monitorul global
+  `NSEvent` — care nu livrează nimic cât timp Accesibilitatea nu e efectiv
+  activă (problema 1!) și poate rata ridicarea tastei când focusul trece la
+  altă aplicație. Un singur eveniment pierdut = mod blocat pornit la
+  nesfârșit. Corpul lui `.flagsChanged` a fost extras în
+  `InputMonitor.applyModifierFlags(_:)`, iar `reconcileModifierState()` — apelat
+  la FIECARE cadru din `OverlayView` — citește sincron `NSEvent.modifierFlags`
+  (starea reală a tastaturii, independentă de livrarea evenimentelor) și
+  corectează diferența. `clearKey` e scos din reconciliere: e o acțiune, nu o
+  stare — reaplicată periodic ar șterge desenele la nesfârșit.
+- **Pătrățelele**: `draw(_:)` ștergea `dirtyRect`, nu `bounds`. La trecerea de
+  la un element care acoperă tot ecranul (masca de spotlight) înapoi la halo,
+  invalidarea redevenea parțială, iar `ctx.clear(dirtyRect)` tăia un
+  dreptunghi transparent prin masca rămasă desenată — pe sub care se vedea
+  desktopul. Exact efectul de „burete în Photoshop" descris. Adăugat
+  `lastFrameWasFullScreen`: un cadru complet în plus după ultimul cadru „plin",
+  iar ștergerea folosește `bounds` cât timp e implicat un element pe tot
+  ecranul.
+
+**Neverificabil automat, rămâne de confirmat manual de Cristi**: acordarea
+efectivă a permisiunii (interacțiune fizică cu fereastra de sistem) și
+comportamentul vizual al spotlight-ului la ținerea/eliberarea tastei.
