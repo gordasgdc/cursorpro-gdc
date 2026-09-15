@@ -28,6 +28,7 @@ extension AppState {
         case magnifierSmoothScaling, magnifierColorPickerEnabled
         case clickEffectsEnabled, clickEffectDuration
         case keystrokeOverlayEnabled, keystrokeScale, keystrokeOpacity, keystrokeDisplayDuration
+        case keystrokePosition, keystrokeBackgroundOpacity
         case spotlightRadius, spotlightDimOpacity
 
         var storageKey: String { AppState.defaultsKeyPrefix + rawValue }
@@ -71,7 +72,14 @@ extension AppState {
         if d.object(forKey: Key.keystrokeOverlayEnabled.storageKey) != nil {
             keystrokeOverlayEnabled = d.bool(forKey: Key.keystrokeOverlayEnabled.storageKey)
         }
-        keystrokeScale = clamped(d, Key.keystrokeScale, keystrokeScale, 0.5...2.0)
+        // Intervalul s-a largit la 8.0; o valoare veche (max 2.0) ramane
+        // valida si nu se pierde la citire.
+        keystrokeScale = clamped(d, Key.keystrokeScale, keystrokeScale, 0.5...8.0)
+        keystrokeBackgroundOpacity = clamped(d, Key.keystrokeBackgroundOpacity, keystrokeBackgroundOpacity, 0.0...1.0)
+        if let raw = d.string(forKey: Key.keystrokePosition.storageKey),
+           let position = KeystrokePosition(rawValue: raw) {
+            keystrokePosition = position
+        }
         keystrokeOpacity = clamped(d, Key.keystrokeOpacity, keystrokeOpacity, 0.2...1.0)
         if d.object(forKey: Key.keystrokeDisplayDuration.storageKey) != nil {
             keystrokeDisplayDuration = min(2.5, max(0.6, d.double(forKey: Key.keystrokeDisplayDuration.storageKey)))
@@ -109,6 +117,8 @@ extension AppState {
         d.set(clickEffectDuration, forKey: Key.clickEffectDuration.storageKey)
         d.set(keystrokeOverlayEnabled, forKey: Key.keystrokeOverlayEnabled.storageKey)
         d.set(Double(keystrokeScale), forKey: Key.keystrokeScale.storageKey)
+        d.set(Double(keystrokeBackgroundOpacity), forKey: Key.keystrokeBackgroundOpacity.storageKey)
+        d.set(keystrokePosition.rawValue, forKey: Key.keystrokePosition.storageKey)
         d.set(Double(keystrokeOpacity), forKey: Key.keystrokeOpacity.storageKey)
         d.set(keystrokeDisplayDuration, forKey: Key.keystrokeDisplayDuration.storageKey)
         d.set(Double(spotlightRadius), forKey: Key.spotlightRadius.storageKey)
@@ -143,6 +153,8 @@ extension AppState {
             $clickEffectDuration.map { _ in () }.eraseToAnyPublisher(),
             $keystrokeOverlayEnabled.map { _ in () }.eraseToAnyPublisher(),
             $keystrokeScale.map { _ in () }.eraseToAnyPublisher(),
+            $keystrokeBackgroundOpacity.map { _ in () }.eraseToAnyPublisher(),
+            $keystrokePosition.map { _ in () }.eraseToAnyPublisher(),
             $keystrokeOpacity.map { _ in () }.eraseToAnyPublisher(),
             $keystrokeDisplayDuration.map { _ in () }.eraseToAnyPublisher(),
             $spotlightRadius.map { _ in () }.eraseToAnyPublisher(),

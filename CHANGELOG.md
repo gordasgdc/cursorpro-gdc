@@ -1,5 +1,19 @@
 # Changelog — CursorPro GDC
 
+## v1.4.0 (2026-09-15) — Taste afișate jos și mult mai mari
+
+### Added
+- **Poziție configurabilă** pentru afișarea tastelor: lângă cursor (ca până
+  acum) sau **jos, centrat** — fix pe ecran, util la filmări, unde un badge
+  care urmărește mouse-ul plimbă privirea.
+- **Opacitate separată pentru fundal**, ca textul să se citească peste orice
+  fereastră.
+
+### Changed
+- **Dimensiunea maximă a crescut de patru ori** (de la 200% la 800%). La 200%
+  badge-ul rămânea ilizibil într-un clip redat la rezoluție redusă sau privit
+  pe telefon.
+
 ## v1.3.1 (2026-09-12) — Permisiunile rămân acordate + spotlight fără urme
 
 ### Fixed

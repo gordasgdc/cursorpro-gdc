@@ -220,6 +220,17 @@ final class AppState: ObservableObject {
         }
     }
 
+    /// Unde apare badge-ul cu tastele.
+    ///
+    /// `.nearCursor` era singurul mod. Pentru filmări de instruire e adesea
+    /// gresit: badge-ul plimba privirea dupa mouse si intra peste continutul
+    /// aratat. `.bottomCenter` il fixeaza intr-un loc pe care ochiul il
+    /// invata o data si nu-l mai cauta.
+    enum KeystrokePosition: String, CaseIterable, Identifiable {
+        case nearCursor, bottomCenter
+        var id: String { rawValue }
+    }
+
     // MARK: - Keystroke Overlay (shortcut display)
     /// Off by default. ALSO off by design for anything without a
     /// modifier — see InputMonitor: only combos that include ⌘/⌃/⌥ are
@@ -230,10 +241,22 @@ final class AppState: ObservableObject {
     @Published var lastKeystroke: KeyCombo?
     @Published var lastKeystrokeTime: TimeInterval = 0
     @Published var keystrokeDisplayDuration: Double = 1.1
-    /// 0.5-2.0 = 50%-200% scale of the badge's font size, padding and
+    @Published var keystrokePosition: KeystrokePosition = .nearCursor
+
+    /// 0.5-8.0 = 50%-800% scale of the badge's font size, padding and
     /// corner radius together, so it stays one coherent shape at any size
     /// instead of just the text growing inside a fixed-size pill.
+    ///
+    /// [2026-09-15] Maximul urcat de la 2.0 la 8.0 (de patru ori), cerut
+    /// pentru filmari de instruire: la 200% badge-ul ramane ilizibil pe un
+    /// clip redat la rezolutie redusa sau privit pe telefon.
     @Published var keystrokeScale: CGFloat = 1.0
+
+    /// Opacitatea FUNDALULUI (pila), separata de cea a badge-ului intreg.
+    /// La pozitia de jos, badge-ul sta peste ferestre oarecare, iar
+    /// contrastul textului depinde de cat de opac e fundalul — nu de cat de
+    /// vizibil e textul, care are deja propria lui opacitate.
+    @Published var keystrokeBackgroundOpacity: CGFloat = 0.65
     /// 0.2-1.0 = 20%-100% opacity of the whole badge (text + background
     /// pill) — multiplied with the fade-out alpha, not a replacement for
     /// it, so a low-opacity badge still fades out the same way.

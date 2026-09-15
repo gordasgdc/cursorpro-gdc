@@ -375,9 +375,26 @@ final class OverlayView: NSView {
         let textSize = (text as NSString).size(withAttributes: attrs)
         let padding: CGFloat = 10 * scale
         let badgeSize = CGSize(width: textSize.width + padding * 2, height: textSize.height + padding)
-        let badgeRect = CGRect(origin: CGPoint(x: cursor.x + 22, y: cursor.y + 22), size: badgeSize)
 
-        ctx.setFillColor(NSColor.black.withAlphaComponent(0.65 * alpha).cgColor)
+        let origin: CGPoint
+        switch state.keystrokePosition {
+        case .nearCursor:
+            origin = CGPoint(x: cursor.x + 22, y: cursor.y + 22)
+        case .bottomCenter:
+            // Centrat orizontal, deasupra marginii de jos. Marginea creste cu
+            // scara: la 800% un decalaj fix de 40 px ar lipi un badge urias de
+            // marginea ecranului.
+            let bottomMargin = 40 + 12 * (scale - 1)
+            origin = CGPoint(x: (bounds.width - badgeSize.width) / 2,
+                             y: bounds.minY + bottomMargin)
+        }
+
+        // `integral`: pe pozitia fixa, o coordonata fractionara face textul
+        // usor neclar la fiecare cadru. Langa cursor nu se observa, fiindca
+        // badge-ul oricum se misca.
+        let badgeRect = CGRect(origin: origin, size: badgeSize).integral
+
+        ctx.setFillColor(NSColor.black.withAlphaComponent(state.keystrokeBackgroundOpacity * alpha).cgColor)
         ctx.addPath(CGPath(roundedRect: badgeRect, cornerWidth: 8 * scale, cornerHeight: 8 * scale, transform: nil))
         ctx.fillPath()
 

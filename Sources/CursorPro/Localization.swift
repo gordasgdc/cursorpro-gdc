@@ -244,6 +244,10 @@ enum L {
                                      .en: "A colored ring, distinct for left click, right click and double click, appears right where you clicked — useful in tutorials, so viewers instantly see what kind of action just happened.",
                                      .es: "Un anillo de color, distinto para clic izquierdo, clic derecho y doble clic, aparece justo donde hiciste clic — útil en tutoriales, para que se vea al instante qué acción ocurrió."],
 
+        "prefs.keystroke.position": [.ro: "Poziție", .en: "Position", .es: "Posición"],
+        "prefs.keystroke.position.cursor": [.ro: "Lângă cursor", .en: "Near cursor", .es: "Junto al cursor"],
+        "prefs.keystroke.position.bottom": [.ro: "Jos, centrat", .en: "Bottom center", .es: "Abajo, centrado"],
+        "prefs.keystroke.bgopacity": [.ro: "Opacitate fundal", .en: "Background opacity", .es: "Opacidad del fondo"],
         "prefs.keystroke.size": [.ro: "Mărime", .en: "Size", .es: "Tamaño"],
         "prefs.keystroke.opacity": [.ro: "Opacitate", .en: "Opacity", .es: "Opacidad"],
         "prefs.keystroke.duration": [.ro: "Durată afișare", .en: "Display duration", .es: "Duración en pantalla"],

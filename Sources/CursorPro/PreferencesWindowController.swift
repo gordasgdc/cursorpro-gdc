@@ -197,9 +197,21 @@ struct PreferencesView: View {
                     Toggle("", isOn: $state.keystrokeOverlayEnabled).labelsHidden()
                 }
                 Divider()
-                percentSliderRow(L.t("prefs.keystroke.size"), value: $state.keystrokeScale, range: 0.5...2.0)
+                labeledRow(L.t("prefs.keystroke.position")) {
+                    Picker("", selection: $state.keystrokePosition) {
+                        Text(L.t("prefs.keystroke.position.cursor")).tag(AppState.KeystrokePosition.nearCursor)
+                        Text(L.t("prefs.keystroke.position.bottom")).tag(AppState.KeystrokePosition.bottomCenter)
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(width: 260)
+                }
+                Divider()
+                percentSliderRow(L.t("prefs.keystroke.size"), value: $state.keystrokeScale, range: 0.5...8.0)
                 Divider()
                 percentSliderRow(L.t("prefs.keystroke.opacity"), value: $state.keystrokeOpacity, range: 0.2...1.0)
+                Divider()
+                percentSliderRow(L.t("prefs.keystroke.bgopacity"), value: $state.keystrokeBackgroundOpacity, range: 0.0...1.0)
                 Divider()
                 secondsSliderRow(L.t("prefs.keystroke.duration"), value: $state.keystrokeDisplayDuration, range: 0.6...2.5)
             }
@@ -454,7 +466,8 @@ struct PreferencesView: View {
             Text(String(format: "%.0f%%", value.wrappedValue * 100))
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
-                .frame(width: 44, alignment: .trailing)
+                // 52, nu 44: "800%" are patru caractere si era taiat.
+                .frame(width: 52, alignment: .trailing)
         }
     }
 
