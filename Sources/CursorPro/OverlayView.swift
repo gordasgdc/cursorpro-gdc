@@ -65,19 +65,36 @@ final class OverlayView: NSView {
         // InputMonitor.reconcileModifierState).
         AppDelegate.shared?.reconcileInputState()
 
-        // `lastFrameWasFullScreen`: chiar daca ACUM nu mai e nimic pe tot
-        // ecranul, cadrul precedent a lasat ceva desenat acolo — trebuie sters
-        // integral, nu partial.
-        guard !needsFullRedraw && !lastFrameWasFullScreen else {
-            lastHaloRect = .zero
-            needsDisplay = true
-            return
-        }
-
         let cursor = localPoint(fromGlobal: state.mouseLocation)
         let extent = state.maxHaloExtent
         let haloRect = NSRect(x: cursor.x - extent, y: cursor.y - extent,
                               width: extent * 2, height: extent * 2)
+
+        // `lastFrameWasFullScreen`: chiar daca ACUM nu mai e nimic pe tot
+        // ecranul, cadrul precedent a lasat ceva desenat acolo — trebuie sters
+        // integral, nu partial.
+        guard !needsFullRedraw && !lastFrameWasFullScreen else {
+            // BUG REAL (2026-09-15, raportat: "cand apas click imi ramane
+            // cercul galben pe ecran, intreg sau o bucata").
+            //
+            // Aici era `lastHaloRect = .zero`. Cadrul de repictare totala
+            // sterge tot ecranul, DAR deseneaza si halo-ul la pozitia
+            // curenta. Cu `.zero`, urmatorul cadru partial calcula zona
+            // murdara DOAR din pozitia noua a cursorului (`lastHaloRect.isEmpty`
+            // -> fara uniune), deci pixelii halo-ului de la pozitia veche nu
+            // mai erau stersi niciodata — ramaneau pe ecran pana trecea din
+            // nou cursorul peste ei.
+            //
+            // Se vedea exact la click, fiindca efectul de click e singurul
+            // lucru din uzul normal care porneste si opreste modul de
+            // repictare totala: apesi, cercul ramane unde ai apasat.
+            //
+            // Corect: retinem zona CHIAR DESENATA in acest cadru, ca
+            // urmatorul cadru partial sa o poata sterge.
+            lastHaloRect = haloRect
+            needsDisplay = true
+            return
+        }
 
         // Uniunea vechi+nou: pozitia veche trebuie stearsa, cea noua desenata.
         let dirty = lastHaloRect.isEmpty ? haloRect : haloRect.union(lastHaloRect)

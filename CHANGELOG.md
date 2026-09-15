@@ -1,5 +1,11 @@
 # Changelog — CursorPro GDC
 
+## v1.4.1 (2026-09-15) — Urme de cerc rămase după click
+
+### Fixed
+- **Cercul din jurul cursorului rămânea desenat pe ecran după click** — întreg
+  sau doar o bucată — până treceai din nou cu mouse-ul peste acel loc.
+
 ## v1.4.0 (2026-09-15) — Taste afișate jos și mult mai mari
 
 ### Added
