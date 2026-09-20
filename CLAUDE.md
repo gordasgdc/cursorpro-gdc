@@ -305,3 +305,4 @@ repo pentru lista completă TODO paritate.
 - Self-Updater: instalează `.dmg` (montare, versiune + `codesign --verify`, înlocuire în /Applications, prompt nativ admin); `.pkg` rămâne pentru clienți ≤1.4.1. `UpdateChecker` preferă asset-ul `CursorProGDC.dmg`, cade pe `.pkg`; erorile se loghează.
 - Permisiuni (Accesibilitate/Screen Recording): deja native, dialog + deep-link Setări (`PermissionsChecker`).
 - **De publicat manual**: release GitHub cu `CursorProGDC-1.5.0.dmg`, `CursorProGDC.dmg` ȘI `CursorProGDC.pkg` (legacy updater). NEverificat: instalarea prin updater pe Mac curat, blocajul Chrome.
+- **LIVE 2026-09-20**: release v1.5.0 publicat pe GitHub (DMG versionat + stabil + `.pkg` legacy, linkuri `latest` 200).
