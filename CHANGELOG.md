@@ -1,5 +1,11 @@
 # Changelog — CursorPro GDC
 
+## v1.5.0 (2026-09-20) — Descărcare .dmg și actualizare automată
+
+### Changed
+- **Descărcare ca imagine .dmg** semnată și verificată de Apple, în loc de arhivă .zip cu scripturi.
+- **Actualizarea automată** instalează direct noua versiune din .dmg (verifică versiunea și semnătura), fără browser.
+
 ## v1.4.1 (2026-09-15) — Urme de cerc rămase după click
 
 ### Fixed

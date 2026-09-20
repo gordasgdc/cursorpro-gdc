@@ -44,20 +44,23 @@ enum UpdateChecker {
             guard let http = response as? HTTPURLResponse, http.statusCode == 200,
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let tag = json["tag_name"] as? String else {
+                DebugLog.log("UpdateChecker: răspuns invalid de la GitHub (HTTP \((response as? HTTPURLResponse)?.statusCode ?? -1))")
                 return .error
             }
             let latest = tag.hasPrefix("v") ? String(tag.dropFirst()) : tag
             guard isVersion(latest, newerThan: currentVersion) else { return .upToDate }
 
-            // Asset-ul .pkg cu nume STABIL ("CursorProGDC.pkg") publicat de
-            // build_installer.sh la fiecare release.
+            // DMG-ul notarizat (nume stabil "CursorProGDC.dmg") e canalul nou;
+            // .pkg-ul rămâne doar ca rezervă pentru un release fără DMG.
             let assets = json["assets"] as? [[String: Any]] ?? []
-            let pkgAsset = assets.first { ($0["name"] as? String) == "CursorProGDC.pkg" }
+            let pkgAsset = assets.first { ($0["name"] as? String) == "CursorProGDC.dmg" }
+                ?? assets.first { ($0["name"] as? String) == "CursorProGDC.pkg" }
             guard let urlString = pkgAsset?["browser_download_url"] as? String, let pkgURL = URL(string: urlString) else {
                 return .newVersion(latest, releasesPageURL)
             }
             return .newVersion(latest, pkgURL)
         } catch {
+            DebugLog.log("UpdateChecker: verificarea a eșuat: \(error.localizedDescription)")
             return .error
         }
     }

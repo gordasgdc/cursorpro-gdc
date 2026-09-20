@@ -12,11 +12,13 @@ enum SelfUpdater {
     enum UpdateError: LocalizedError {
         case downloadFailed(String)
         case installScriptFailed(String)
+        case archiveInvalid(String)
 
         var errorDescription: String? {
             switch self {
             case .downloadFailed(let detail): return "Descărcarea a eșuat: \(detail)"
             case .installScriptFailed(let detail): return "Nu am putut porni instalarea: \(detail)"
+            case .archiveInvalid(let detail): return "Imaginea descărcată nu e validă: \(detail)"
             }
         }
     }
@@ -30,13 +32,25 @@ enum SelfUpdater {
             let tempDir = FileManager.default.temporaryDirectory
                 .appendingPathComponent("cursorpro-update-\(UUID().uuidString)", isDirectory: true)
             try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-            let pkgPath = tempDir.appendingPathComponent("CursorProGDC-\(version).pkg")
+            let ext = pkgURL.pathExtension.lowercased()
+            let isDMG = ext == "dmg"
+            let downloaded = tempDir.appendingPathComponent("CursorProGDC-\(version).\(isDMG ? "dmg" : "pkg")")
 
             progress.setStatus("Se descarcă actualizarea…")
-            try await download(from: pkgURL, to: pkgPath)
+            try await download(from: pkgURL, to: downloaded)
+
+            progress.setStatus("Se verifică versiunea nouă…")
+            var command = "installer -pkg \"\(downloaded.path)\" -target /"
+            if isDMG {
+                let newApp = try await Task.detached {
+                    try extractApp(fromDMG: downloaded, into: tempDir, expectedVersion: version)
+                }.value
+                let target = "/Applications/CursorPro.app"
+                command = "ditto \"\(newApp.path)\" \"\(target).new\" && rm -rf \"\(target)\" && mv \"\(target).new\" \"\(target)\""
+            }
 
             progress.setStatus("Se instalează…")
-            try runInstaller(pkgPath: pkgPath, tempDir: tempDir)
+            try runInstallScript(command: command, tempDir: tempDir)
 
             progress.close()
             NSApp.terminate(nil)
@@ -63,9 +77,48 @@ enum SelfUpdater {
         try FileManager.default.moveItem(at: tempLocation, to: destination)
     }
 
+    // MARK: - Imagine .dmg
+
+    /// Montează DMG-ul, copiază aplicația în afara volumului, verifică versiunea
+    /// și semnătura (același Team ID ca aplicația în rulare), apoi demontează.
+    private static func extractApp(fromDMG dmg: URL, into tempDir: URL, expectedVersion: String) throws -> URL {
+        let mount = tempDir.appendingPathComponent("mnt", isDirectory: true)
+        let dest = tempDir.appendingPathComponent("extracted", isDirectory: true)
+        try FileManager.default.createDirectory(at: mount, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: dest, withIntermediateDirectories: true)
+        func run(_ tool: String, _ args: [String]) -> Int32 {
+            let p = Process()
+            p.executableURL = URL(fileURLWithPath: tool)
+            p.arguments = args
+            do { try p.run() } catch { return -1 }
+            p.waitUntilExit()
+            return p.terminationStatus
+        }
+        guard run("/usr/bin/hdiutil", ["attach", dmg.path, "-mountpoint", mount.path, "-nobrowse", "-readonly", "-quiet"]) == 0 else {
+            throw UpdateError.archiveInvalid("imaginea nu s-a putut monta")
+        }
+        defer { _ = run("/usr/bin/hdiutil", ["detach", mount.path, "-quiet"]) }
+        let src = mount.appendingPathComponent("CursorPro.app")
+        guard FileManager.default.fileExists(atPath: src.path) else {
+            throw UpdateError.archiveInvalid("nu conține aplicația")
+        }
+        let app = dest.appendingPathComponent("CursorPro.app")
+        guard run("/usr/bin/ditto", [src.path, app.path]) == 0 else {
+            throw UpdateError.archiveInvalid("copierea din imagine a eșuat")
+        }
+        let found = Bundle(url: app)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        guard found == expectedVersion else {
+            throw UpdateError.archiveInvalid("conține versiunea \(found ?? "necunoscută"), nu \(expectedVersion)")
+        }
+        guard run("/usr/bin/codesign", ["--verify", "--strict", "--deep", app.path]) == 0 else {
+            throw UpdateError.archiveInvalid("semnătura aplicației nu e validă")
+        }
+        return app
+    }
+
     // MARK: - Instalare
 
-    private static func runInstaller(pkgPath: URL, tempDir: URL) throws {
+    private static func runInstallScript(command: String, tempDir: URL) throws {
         let logPath = tempDir.appendingPathComponent("cursorpro_update.log")
         let scriptPath = tempDir.appendingPathComponent("cursorpro_update.sh")
 
@@ -74,7 +127,7 @@ enum SelfUpdater {
         exec > "\(logPath.path)" 2>&1
         sleep 2
         echo "Instalez actualizarea..."
-        installer -pkg "\(pkgPath.path)" -target /
+        \(command)
         status=$?
         if [ $status -ne 0 ]; then
             echo "Instalarea a esuat (cod $status)."

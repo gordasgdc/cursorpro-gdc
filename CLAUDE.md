@@ -298,3 +298,10 @@ repo pentru lista completă TODO paritate.
 **Regula 21:**
 
 **Status acest repo (2026-08-28, verificat): NU SE APLICA.** Auditat la cererea lui Cristi — CursorPro nu proceseaza fisiere mari (personalizare cursor, resurse mici, fara transfer/copiere de date in bloc). Regula 21 ramane relevanta doar daca se adauga vreodata o functie de import/export de fisiere mari.
+
+### Jurnal 2026-09-20 — v1.5.0, distribuție DMG (Regula 45 / K)
+- `release_dmg.sh`: build Developer ID → notarizare + staple aplicație → DMG (aplicație + link Aplicații + ghid PDF) semnat + notarizat + stapled → verificat cu `spctl` și după montare. Rezultat: `dist/CursorProGDC-1.5.0.dmg` (+ `CursorProGDC.dmg` stabil).
+- `.zip` și `.command` nu se mai produc (`build_installer.sh` face doar `.pkg`-ul legacy). Uninstaller-ul `.command` rămâne în repo, nedistribuit.
+- Self-Updater: instalează `.dmg` (montare, versiune + `codesign --verify`, înlocuire în /Applications, prompt nativ admin); `.pkg` rămâne pentru clienți ≤1.4.1. `UpdateChecker` preferă asset-ul `CursorProGDC.dmg`, cade pe `.pkg`; erorile se loghează.
+- Permisiuni (Accesibilitate/Screen Recording): deja native, dialog + deep-link Setări (`PermissionsChecker`).
+- **De publicat manual**: release GitHub cu `CursorProGDC-1.5.0.dmg`, `CursorProGDC.dmg` ȘI `CursorProGDC.pkg` (legacy updater). NEverificat: instalarea prin updater pe Mac curat, blocajul Chrome.
