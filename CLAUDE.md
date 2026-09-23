@@ -306,3 +306,10 @@ repo pentru lista completă TODO paritate.
 - Permisiuni (Accesibilitate/Screen Recording): deja native, dialog + deep-link Setări (`PermissionsChecker`).
 - **De publicat manual**: release GitHub cu `CursorProGDC-1.5.0.dmg`, `CursorProGDC.dmg` ȘI `CursorProGDC.pkg` (legacy updater). NEverificat: instalarea prin updater pe Mac curat, blocajul Chrome.
 - **LIVE 2026-09-20**: release v1.5.0 publicat pe GitHub (DMG versionat + stabil + `.pkg` legacy, linkuri `latest` 200).
+
+### Handoff — fișierul de stare (Regula 50, `~/Developer/CLAUDE.md`)
+
+- Fișierul de stare al acestui proiect: `PROJECT_STATE.md` (rădăcina repo-ului). La orice sesiune nouă se citește
+  ÎNTÂI el, apoi doar fragmentele strict necesare; se actualizează la milestone-uri și obligatoriu la final.
+  Dacă lipsește, se creează la prima sesiune care atinge proiectul. Repo PUBLIC: fișierul e intern, listat în `.gitignore` (doar local, Regula 29).
+- Restructurarea/ștergerea lui și orice modificare a acestui `CLAUDE.md`: doar cu diff-ul arătat și acordul lui Cristi.

@@ -5,3 +5,6 @@
 CursorPro.app/
 dist/
 *.pkg
+
+# Stare de lucru internă (Regula 50), doar local
+PROJECT_STATE.md
