@@ -1,5 +1,18 @@
 # Changelog — CursorPro GDC
 
+## v2.0.0
+
+### Nou
+- Interfață nouă, în temă luminoasă sau întunecată, cu mărime de text reglabilă.
+- Demo gratuit: toate funcțiile, în sesiuni de 10 minute de utilizare activă, apoi 48 de ore. Licență prin donație confirmată sau acordată gratuit, pentru o zi, o lună, trei luni, un an sau fără expirare.
+- Română, engleză și spaniolă; termeni de utilizare afișați la instalare și în aplicație.
+- Actualizări verificate prin semnătură înainte de instalare.
+- Începând cu această versiune aplicația este proprietară; versiunile anterioare rămân cu condițiile cu care au fost publicate.
+
+### Mac
+- Lupă reparată (margini, ecrane Retina, urmărirea cursorului) și dezinstalare din aplicație.
+- Descărcare ca imagine .dmg sau instalator .pkg, semnate și notarizate de Apple.
+
 ## v1.5.0 (2026-09-20) — Descărcare .dmg și actualizare automată
 
 ### Changed

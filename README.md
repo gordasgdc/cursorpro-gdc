@@ -1,37 +1,34 @@
 # CursorPro GDC
 
-A native macOS presentation tool for screen recordings and live courses: a cursor **Halo**, a **Spotlight** that dims everything but a circle around your pointer, **Draw** (freehand, arrows, circles, selection frames) with reconfigurable keyboard shortcuts, and a live **Zoom** loupe that magnifies the screen around your cursor.
+Presentation tools for any screen, on **macOS** and **Windows**: a halo around the cursor, a spotlight, a real-pixel magnifier, drawing over any app, click rings and displayed keys. Interface in Romanian, English and Spanish.
 
-Built as a lightweight, native (Swift/AppKit) Apple Silicon replacement for tools like Pro Mouse — menu-bar only, no Dock icon, doesn't steal focus from whatever you're presenting.
-
-Romanian / English / Spanish interface.
+Product page, guides and terms: **https://gordas.dev/cursorpro-gdc/**
 
 ## Download
 
-Get the latest build from [Releases](../../releases/latest). A **3-day free trial** starts automatically on first launch — every feature works, no license needed to try it.
+| System | Where |
+|---|---|
+| macOS 14 or later | [Releases of this repository](../../releases/latest): `CursorProGDC-<version>.dmg` (signed and notarized by Apple) or `CursorProGDC-<version>.pkg` |
+| Windows 10 / 11 | [Releases of the Windows repository](https://github.com/gordasgdc/cursorpro-gdc-win/releases/latest): `CursorProGDCSetup-<version>.exe` |
 
-## Features
+Every release lists the SHA-256 sums of its files. The app checks updates itself and installs one only after verifying its signature.
 
-- **Halo** — a visible ring around the cursor so it's easy to follow on a projected/shared screen. Ring, filled, or crosshair style; adjustable color and size.
-- **Spotlight** — dims the rest of the screen except a circle around the cursor, to pull attention to one spot.
-- **Draw** — freehand or shapes (arrow, circle, selection frame) drawn directly over any app, with per-tool keyboard shortcuts you can reassign.
-- **Zoom** — a live, magnified loupe that follows the cursor, for showing small UI details clearly.
-- All modes activate by holding a key (fully reconfigurable) — nothing stays on by accident.
+## Demo and licence
 
-## License
+- **Free Demo**: every feature, in sessions of **10 minutes** of active use. After a session is used up, the next one opens after **48 hours**.
+- A **licence** removes the Demo limits for its period (one day, one month, three months, one year, another period, or no expiry). It is obtained through a donation that is manually confirmed, or granted for free (prize, event, collaboration, gift). You request it from the app, in the Licence tab, and decide yourself whether to send the request.
+- Terms of use: https://gordas.dev/cursorpro-gdc/termeni/
 
-CursorPro GDC works fully for 3 days from first launch. After that, a license is needed to keep using it — see the **License** page in Preferences, or message on WhatsApp from there to buy one.
+## What this repository contains
 
-Source code in this repository is provided under the MIT license (see [LICENSE](LICENSE)) — it's open for review, but using the distributed app past the trial period requires an activation code, per the app's own terms.
+- The source files here are those of version **1.5.0** and earlier, published under the **MIT** licence (see [LICENSE](LICENSE)). They remain under MIT.
+- From **2.0.0**, CursorPro GDC is **proprietary** software, distributed as binaries through the Releases. The 2.0.0 source code is not in this repository.
+- Open source notices of the components used by 2.0.0: https://gordas.dev/cursorpro-gdc/licente-open-source/
 
-## Building from source
+## Română
 
-Requires macOS 14+ and Swift 5.9+ (Xcode Command Line Tools).
+CursorPro GDC pune un halo în jurul cursorului, întunecă ce nu contează, mărește exact unde arăți și te lasă să desenezi peste orice aplicație. Demo gratuit: sesiuni de 10 minute de utilizare activă, apoi 48 de ore. Licența se obține prin donație confirmată sau acordată gratuit. De la versiunea 2.0.0 aplicația este proprietară; fișierele sursă din acest depozit sunt cele ale versiunii 1.5.0 și anterioare, sub licența MIT.
 
-```bash
-git clone https://github.com/gordasgdc/cursorpro-gdc.git
-cd cursorpro-gdc
-./build_app.sh
-```
+## Español
 
-This builds and installs straight to `/Applications/CursorPro.app`.
+CursorPro GDC pone un halo alrededor del cursor, oscurece lo que no importa, amplía justo donde señalas y te deja dibujar sobre cualquier app. Demo gratuita: sesiones de 10 minutos de uso activo y luego 48 horas. La licencia se obtiene mediante una donación confirmada o se concede gratis. Desde la versión 2.0.0 la aplicación es propietaria; los archivos fuente de este repositorio son los de la versión 1.5.0 y anteriores, bajo licencia MIT.
