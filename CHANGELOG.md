@@ -1,5 +1,11 @@
 # Changelog — CursorPro GDC
 
+## v2.0.1 (macOS)
+
+### Reparat
+- Cererea de activare trimisă prin WhatsApp ajunge acum corect: cheia dispozitivului din cerere nu se mai alterează pe drum. Același lucru e corectat pentru e-mail. Fără alte modificări.
+
+
 ## v2.0.0
 
 ### Nou
