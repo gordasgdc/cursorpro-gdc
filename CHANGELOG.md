@@ -1,5 +1,14 @@
 # Changelog — CursorPro GDC
 
+## v2.1.0
+
+### Nou
+- **Cererea de licență se trimite direct din aplicație.** Alegi oferta din lista publicată, vezi rezumatul și apeși «Trimite cererea»; după confirmarea donației, licența se preia și se activează singură, fără cod de copiat. «Verifică aprobarea» arată starea cererii.
+- Fără conexiune, cererea nu se pierde: «Trimite din nou» folosește aceeași cerere, fără dubluri.
+- WhatsApp și e-mailul rămân disponibile: mesajul pregătit conține identificatorul aceleiași cereri și oferta aleasă.
+- Când lista de oferte nu se poate încărca, aplicația arată motivul și «Reîncearcă».
+- Termenii de utilizare și ghidul au fost actualizați.
+
 ## v2.0.1 (macOS)
 
 ### Reparat
